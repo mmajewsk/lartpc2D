@@ -11,6 +11,8 @@ from envs.dims import neighborhood2d
 from actors.networks import movement_network
 #from viz import  Visualisation
 import time
+import datetime as dt
+import git
 
 def ftest_draw_random_cursor(data_path):
     data_generator = data.LartpcData(data_path)
@@ -39,6 +41,9 @@ class Logger:
     def __init__(self):
         self.train_hist = []
         self.records = []
+        repo = git.Repo(search_parent_directories=True)
+        sha = repo.head.object.hexsha
+        self.outputfilename = 'plots/{}_{}.png'.format(dt.datetime.now().strftime('%Y%m%d%H%M%S'), sha)
 
     def add_train_history(self, th):
         self.train_hist.append(th)
@@ -51,7 +56,7 @@ class Logger:
         axe[0].plot([h.history['loss'] for h in self.train_hist])
         axe[1].plot([h.history['acc'] for h in self.train_hist])
         axe[2].plot([h.history['mae'] for h in self.train_hist])
-        fig.savefig('plot.png')
+        fig.savefig(self.outputfilename)
         #plt.show()
 
     def dump_log(self):

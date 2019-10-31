@@ -82,7 +82,7 @@ class Action2DFactory:
         else:
             a = simple_index + 0
         unflat_data = m_a.put_decision.reshape(self.cursor.region_output.shape)
-        return GameAction2D(self.possible_movement[a], simple_index, unflat_data)
+        return GameAction2D(self.possible_movement[simple_index], simple_index, unflat_data)
 
     def flat_to_model_action(self, flat_array: np.ndarray) -> ModelAction2D:
         assert len(flat_array)==self.data_size+self.movement_size, "Incorrect array length"
