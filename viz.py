@@ -36,6 +36,18 @@ class Visualisation:
         ('result', self._heat_result_map)]
         return OrderedDict(showmaps)
 
+    @property
+    def window_positions(self):
+        win_poses = [
+            ('source', (25, 300)),
+            ('target', (450, 300)),
+            ('result', (900,300)),
+            ('source_cursor', (25, 100)),
+            ('target_cursor', (450, 100)),
+            ('result_cursor', (900, 100))
+        ]
+        return OrderedDict(win_poses)
+
     @heatmaps.setter
     def heatmaps(self, val):
         assert len(val) == 3, "setting too long"
@@ -54,7 +66,7 @@ class Visualisation:
 
     def add_cursor_to_maps(self):
         for _, hmap in self.heatmaps.items():
-            self.game.cursor.set_range(hmap, np.array([1,0,0, 1.]))
+            self.game.cursor.set_range(hmap, np.array([1,0,0, 1.]), region_type='source_input')
 
     def show_cursor(self, name, data):
         cv2.imshow(name, data)
@@ -62,7 +74,9 @@ class Visualisation:
     def extract_cursor_data(self):
         for name, data in self.heatmaps.items():
             cursor_data = self.game.cursor.get_range(data)
-            cv2.imshow('{}_cursor'.format(name),cursor_data)
+            name = '{}_cursor'.format(name)
+            cv2.imshow(name,cursor_data)
+            cv2.moveWindow(name, *self.window_positions[name])
 
 
     def update(self, wait=0):
@@ -72,4 +86,6 @@ class Visualisation:
         for name, map in self.heatmaps.items():
             map = cv2.resize(map, (400,400))
             cv2.imshow(name, map)
+
+            cv2.moveWindow(name, *self.window_positions[name])
         cv2.waitKey(wait)

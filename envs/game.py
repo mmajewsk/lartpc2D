@@ -1,5 +1,6 @@
+from actors.actions import GameAction2D
+from actors.observations import GameObservation2D
 from envs.cursors import Cursor2D
-from collections import OrderedDict
 import numpy as np
 import pandas as pd
 from abc import abstractmethod, ABC
@@ -10,14 +11,14 @@ class BaseEnvironment(ABC):
         self.target_map = None
         self.result_map = None
 
-    def read_source_nonzero_indeces(self):
-        self.nonzero_indeces = np.where(self.source_map>0.)
-
     @property
     @abstractmethod
     def dimension_list(self):
         #eg. return ['x','y','z']
         pass
+
+    def read_source_nonzero_indeces(self):
+        self.nonzero_indeces = np.where(self.source_map > 0.)
 
     def create_nonzero_df(self, nonzero_indeces):
         df_dict = {}
@@ -26,9 +27,9 @@ class BaseEnvironment(ABC):
         self.nonzero_df = pd.DataFrame(df_dict)
         self.nonzero_df['touched'] = 0
 
-    def get_random_position(self):
+    def get_random_positions(self):
         row = self.nonzero_df.sample(1)
-        return row[self.dimension_list].values[0]
+        return row[self.dimension_list].values
 
     def set_map(self, source, target, result=None):
         self.source_map = source
@@ -36,7 +37,9 @@ class BaseEnvironment(ABC):
         if result is not None:
             self.result_map = result
         else:
-            self.result_map = np.zeros(self.target_map.shape)
+            self.result_map = np.zeros_like(self.target_map)
+        self.read_source_nonzero_indeces()
+        self.create_nonzero_df(self.nonzero_indeces)
 
     def get_map(self):
         return self.source_map, self.target_map, self.result_map
@@ -48,79 +51,90 @@ class Environment2D(BaseEnvironment):
     def dimension_list(self):
         return ['x','y']
 
-class Action2D:
-    def __init__(self, movement_vector, put_data):
-        self.movement_vector = movement_vector
-        self.put_data = put_data
-
-class Action2DFactory:
-    def __init__(self, cursor: Cursor2D ):
-        self.cursor = cursor
-        mov_range = cursor.region_movement.range
-        self.possible_movement = mov_range
-        self.possible_data = cursor.region_input.range
-        self.movement_size = cursor.region_movement.basic_block_size-1
-        self.data_size =  cursor.region_input.basic_block_size
-
-    def from_flat(self, flat_array: np.ndarray) -> Action2D:
-        assert len(flat_array)==self.data_size+self.movement_size, "Incorrect array length"
-        flat_movement, flat_data = flat_array[:self.movement_size], flat_array[self.movement_size:]
-        assert np.sum(flat_movement) == 1, "ambigiuos movement choice"
-        middle_index = self.cursor.region_movement.r_low*(self.cursor.region_movement.size+1)
-        a,  = np.where(flat_movement==1.0)
-        if a>middle_index:
-            a+=1
-        unflat_data = flat_data.reshape(self.cursor.region_input.shape)
-        return Action2D(self.possible_movement[a], unflat_data)
-
-    def to_flat(self, action: Action2D) -> np.ndarray:
-        flat_movement = np.zeros(self.movement_size, self.possible_movement.dtype)
-        a, = np.where(self.possible_movement==action.movement_vector)
-        flat_movement[a] = 1.0
-        flat_data = action.put_data.flatten()
-        return np.concatenate([flat_movement, flat_data])
-
-
-class Observation2D:
-    def __init__(self, source_oservation, result_observation):
-        self.source_obsercation = source_oservation
-        self.result_observation = result_observation
-
-def rewards(source_cursor, result_cursor):
-    # assumes result cursor is binary
-    discovered = np.sum((source_cursor != 0.0)-result_cursor)
-    empty = np.sum((source_cursor==0.0))*-1.1
-    # 2:
-    # + Discovers undiscovered
-    # - Doesn't go to empty
-    return OrderedDict(discovered=discovered, empty=empty)
 
 class Game2D:
 
-    def __init__(self, env: Environment2D):
+    def __init__(self, env: Environment2D, max_step_number):
         self.env = env
-        self.cursor = Cursor2D(output_size=3, input_size=3, movement_size=3)
+        self.cursor = Cursor2D(output_size=1, input_result_size = 5, input_source_size=5, movement_size=3)
+        self.cursor_history = []
+        self.reward_history = []
+        self.max_step_number = max_step_number
+        self.step_number = None
 
+
+    def move_cursor(self, new_center):
+        self.cursor_history.append(self.cursor.current_center.copy())
+        self.cursor.current_center = new_center
 
     def start(self):
-        self.cursor.current_center = self.env.get_random_position()
+        self.cursor_history = []
+        for center in self.env.get_random_positions():
+            if not self._outside_marigin(center):
+                self.cursor.current_center = center
+                break
+        self.step_number = 0
 
-    def act(self, action: Action2D):
-        self.cursor.set_range(self.env.result_map, action.put_data)
-        self.cursor.current_center += action.movement_vector
+    def _outside_marigin(self, new_center):
+        marigin = self.cursor.region_source_input.r_low
+        return np.any(new_center <= marigin) or np.any(new_center >= self.env.source_map.shape[0]-marigin)
 
-    def get_observation(self) -> Observation2D:
-        source_curs = self.cursor.get_range(self.env.source_map)
-        result_curs = self.cursor.get_range(self.env.result_map)
-        obs = Observation2D(source_curs, result_curs)
+
+    def _act(self, action: GameAction2D) -> bool:
+        assert action.put_data.shape==self.cursor.region_output.shape
+        ones_put = np.ones_like(action.put_data)
+        self.cursor.set_range(self.env.result_map, ones_put)
+        new_center = self.cursor.current_center + action.movement_vector
+        if self._outside_marigin(new_center):
+            action_success = False
+        else:
+            self.move_cursor(new_center)
+            action_success = action.movement_vector.any()
+        return action_success
+
+    def step(self, action: GameAction2D):
+        done = True
+        can_move = self.step_number < self.max_step_number -1
+        last_move = self.step_number == self.max_step_number -1
+        if can_move:
+            action_success = self._act(action)
+            # if action succedded, than it is not done
+            if not last_move and action_success:
+                done = False
+                self.step_number += 1
+            else:
+                done = True
+        #if np.count_nonzero(self.get_observation().source_observation) == 0:
+        #    done = True
+
+        return self.get_observation(), self.reward(), done, ""
+
+    def get_observation(self) -> GameObservation2D:
+        source_curs = self.cursor.get_range(self.env.source_map, region_type='source_input')
+        result_curs = self.cursor.get_range(self.env.result_map, region_type='result_input')
+        obs = GameObservation2D(source_curs, result_curs)
         return obs
 
+    def _reward_calc(self, source_cursor, result_cursor):
+        nonzero_source_px = np.count_nonzero(source_cursor)
+        discovered_pixels = self.cursor.region_result_input.basic_block_size - np.count_nonzero(result_cursor)
+        reward = nonzero_source_px+discovered_pixels*.09
+        assert reward>=0
+        if discovered_pixels== 0:
+            reward = reward - 5
+        if nonzero_source_px == 0:
+            reward = reward-15
+            #if self.reward_history <= 0.0:
+            #    reward = reward - self.reward_history[-1]*3
+        return reward
+
     def reward(self):
-        rewards_dict = rewards(
+        rewards_dict = dict(
             source_cursor=self.cursor.get_range(self.env.source_map),
-            result_cursor=self.cursor.get_range(self.env.result_map),
+            result_cursor=self.cursor.get_range(self.env.result_map, region_type='result_input'),
         )
-        rewards_list = list(rewards_dict.values())
-        return np.sum(rewards_list)
+        reward = self._reward_calc(**rewards_dict)
+        self.reward_history.append(reward)
+        return reward
 
 
