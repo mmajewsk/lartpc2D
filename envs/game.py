@@ -117,12 +117,14 @@ class Game2D:
 
     def _reward_calc(self, source_cursor, result_cursor):
         nonzero_source_px = np.count_nonzero(source_cursor)
+        center_pixel = source_cursor[self.cursor.region_source_input.r_low, self.cursor.region_source_input.r_low]
         discovered_pixels = self.cursor.region_result_input.basic_block_size - np.count_nonzero(result_cursor)
         reward = nonzero_source_px+discovered_pixels*.09
         assert reward>=0
         if discovered_pixels== 0:
             reward = reward - 5
-        if nonzero_source_px == 0:
+        center_pixel_is_zero =  (np.count_nonzero(center_pixel) == 0 )
+        if center_pixel_is_zero:
             reward = reward-15
             #if self.reward_history <= 0.0:
             #    reward = reward - self.reward_history[-1]*3

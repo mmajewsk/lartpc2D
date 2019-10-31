@@ -99,14 +99,14 @@ def simple_learn(data_path):
         network_model_factory=nm_factory
     )
     actor.batch_size = 32
-    game.max_step_number = 6
+    game.max_step_number = 8
     history = []
     p = Logger()
     for iterate_maps in range(4000):
         map_number = np.random.randint(0, len(data_generator))
         game.env.set_map(*data_generator[map_number])
         iterations = []
-        for iterate_tries in range(15):
+        for iterate_tries in range(8):
             game.start()
             trial_run_history = []
             for model_run_iteration in range(game.max_step_number):

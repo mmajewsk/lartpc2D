@@ -28,8 +28,8 @@ def simple_replay(data_path):
     )
     actor.load_models(Path('./model_dumps'))
     actor.batch_size = 32
-    game.max_step_number =6
-    for iterate_maps in range(10):
+    game.max_step_number =12
+    for iterate_maps in range(8):
         map_number = np.random.randint(0, len(data_generator))
         game.env.set_map(*data_generator[map_number])
         for iterate_tries in range(30):
