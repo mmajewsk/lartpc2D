@@ -8,7 +8,28 @@ conda install scipy
 conda install matplotlib
 ```
 
+## Research Log:
 
+https://openai.com/blog/emergent-tool-use/ Reading this.
+Should take a look at attention.
+https://arxiv.org/pdf/1909.07528.pdf - next the paper
+Paper:
+
+"intrinsic motivation" - ?? reading http://www.cs.cornell.edu/~helou/IMRL.pdf on this. 
+
+autocurricula - ?? arXiv:1903.00742
+
+
+not read yet:
+https://arxiv.org/pdf/1707.06347.pdf
+
+HIGH-DIMENSIONAL CONTINUOUS CONTROL USING GENERALIZED ADVANTAGE ESTIMATION https://arxiv.org/pdf/1506.02438.pdf
+
+https://arxiv.org/pdf/1707.06347.pdf
+
+
+kinda related maze: https://arxiv.org/pdf/1611.03673.pdf, https://arxiv.org/pdf/1810.02274.pdf
+Must read on multiple objectives: https://arxiv.org/pdf/1809.04474.pdf
 ## Experiments
 
  31.1.02.2019
@@ -34,3 +55,9 @@ conda install matplotlib
  Going back to 8 
  R7
  As great as probably can be without recurrent layer.
+ Lets increase gamma 0.5 -> 0.8 with steps 8->10.
+ R8  Not to good. again, but less iterations.
+ R9 forgot to turn it off, seems to be flying again
+ R10 even worse. Lets change steps back to 10->8
+ R11 Even better than anything so far. trying to give it een more time.
+ R12 Worse than R11

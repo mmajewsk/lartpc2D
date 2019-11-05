@@ -100,6 +100,7 @@ def simple_learn(data_path):
     )
     actor.batch_size = 32
     game.max_step_number = 8
+    actor.gamma = 0.8
     history = []
     p = Logger()
     for iterate_maps in range(4000):
