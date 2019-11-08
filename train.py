@@ -96,11 +96,12 @@ def simple_learn(data_path):
         action_factory,
         observation_factory,
         epsilon_kwrgs=epsilon_kwrgs,
-        network_model_factory=nm_factory
+        network_model_factory=nm_factory,
+        batch_size= 128,
+        trace_length= 1,
+        gamma = 0.8,
     )
-    actor.batch_size = 32
-    game.max_step_number = 8
-    actor.gamma = 0.8
+    game.max_step_number = 12
     history = []
     p = Logger()
     for iterate_maps in range(4000):

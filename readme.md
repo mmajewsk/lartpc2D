@@ -61,3 +61,7 @@ Must read on multiple objectives: https://arxiv.org/pdf/1809.04474.pdf
  R10 even worse. Lets change steps back to 10->8
  R11 Even better than anything so far. trying to give it een more time.
  R12 Worse than R11
+ Increasing batch to 128 R13 better line of loss, and also nice behaviour 
+ increasing steps again to 12 R14
+ 
+ I think i need to read if batch reg would be useful here

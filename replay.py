@@ -24,7 +24,10 @@ def simple_replay(data_path):
         action_factory,
         observation_factory,
         epsilon_kwrgs=epsilon_kwrgs,
-        network_model_factory=dummy_factory
+        network_model_factory=dummy_factory,
+        batch_size=128,
+        trace_length=1,
+        gamma=0.8
     )
     actor.load_models(Path('./model_dumps'))
     actor.batch_size = 32

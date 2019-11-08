@@ -109,17 +109,20 @@ class Actor(BaseActor):
             observation_factory: Observation2DFactory,
             epsilon_kwrgs: dict,
             network_model_factory,
+            batch_size: int,
+            trace_length: int,
+            gamma: float,
         ):
         BaseActor.__init__(self,)
         self.action_factory = action_factory
         self.observation_factory = observation_factory
-        self.memory = SquashedTraceBuffer()
-        self.batch_size = 16
-        self.trace_length = 1
+        self.memory = SquashedTraceBuffer(buffer_size=4000)
+        self.batch_size = batch_size
+        self.trace_length = trace_length
         self.epsilon = Epsilon(**epsilon_kwrgs)
         self.model = network_model_factory()
         self.target_model = network_model_factory()
-        self.gamma = 0.5
+        self.gamma = gamma
         self.tau = .225
 
     def load_models(self, path: Path):
@@ -194,6 +197,7 @@ class Actor(BaseActor):
         samples = self.memory.sample(self.batch_size, self.trace_length)
         batched_samples, batched_targets = self.add_future_to_samples(samples)
         #assert batched_samples.shape[:-1] == (2, self.batch_size)
+        #print(len(batched_samples), batched_samples[0].shape)
         return self.model.fit(batched_samples, batched_targets, epochs=1)
 
     def dump_models(self, path: Path):
