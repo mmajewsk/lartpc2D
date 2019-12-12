@@ -3,7 +3,7 @@ import numpy as np
 import data
 
 if __name__ == "__main__":
-    data_generator = data.LartpcData('../dump')
+    data_generator = data.LartpcData.from_path('../dump')
     Y = np.array([0.,0.,0.])
     for i,(x,y) in enumerate(conv_net_gdata_generator(data_generator)):
         if i==1000:

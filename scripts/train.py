@@ -16,7 +16,7 @@ import datetime as dt
 import git
 
 def ftest_draw_random_cursor(data_path):
-    data_generator = data.LartpcData(data_path)
+    data_generator = data.LartpcData.from_path(data_path)
     env = Environment2D()
     env.set_map(*data_generator[3])
     game = Game2D(env)
@@ -82,7 +82,7 @@ def create_model_params(action_factory, observation_factory):
     return model_params
 
 def prepare_game(data_path, config, empty_network=False):
-    data_generator = data.LartpcData(data_path)
+    data_generator = data.LartpcData.from_path(data_path)
     env = Environment2D()
     env.set_map(*data_generator[3])
     game = Game2D(env, max_step_number=config.max_step_number)

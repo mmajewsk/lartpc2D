@@ -85,7 +85,7 @@ def batch_generator(data_generator : data.LartpcData, batch_size=32):
                 yield batch
 
 if __name__=="__main__":
-    data_generator = data.LartpcData('../dump')
+    data_generator = data.LartpcData.from_path('../dump')
     input_params = {
         'source_feature_size': 9,
     }
@@ -93,12 +93,18 @@ if __name__=="__main__":
         'result_output': 9*3,
     }
     other_params = {
-        'dense_size': (9*3)**2,
-        'dropout_rate': 0.2
+        'dense_size': (9*2)**2,
+        'dropout_rate': 0.5,
+        'batch_size': 128,
     }
     logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=logdir)
     model = categorisation_network(input_params, output_params, other_params)
-    model.fit_generator(batch_generator(data_generator), steps_per_epoch=200, epochs=100, callbacks=[tensorboard_callback])
+    model.fit_generator(
+        batch_generator(data_generator, batch_size=other_params['batch_size']),
+        steps_per_epoch=200,
+        epochs=100,
+        callbacks=[tensorboard_callback]
+    )
 
 

@@ -11,7 +11,7 @@ import numpy as np
 def bot_replay(data_path):
     config = LConfig()
     config.max_step_number = 20
-    data_generator = data.LartpcData(data_path)
+    data_generator = data.LartpcData.from_path(data_path)
     env = Environment2D()
     env.set_map(*data_generator[3])
     game = Game2D(env, max_step_number=config.max_step_number)

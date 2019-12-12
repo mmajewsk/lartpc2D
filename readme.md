@@ -90,7 +90,29 @@ https://github.com/kwotsin/TensorFlow-ENet/blob/master/get_class_weights.py
  I think i need to read if batch reg would be useful here
  
  
- #12.12.2019
- 
- 122707
- So the first run just see how it works.
+#12.12.2019
+
+122707
+So the first run just see how it works.
+
+124010
+First run on GPU on Home Cluster.
+
+125128
+Increasing epochs to 100 and steps to 200
+This shows signs of overfitting after 10 epoch
+
+134448
+Increasing batch to 128 
+That did not help much
+
+134219  
+increasing dropout to 0.4
+This helped a lot, altough the plateu is still there.
+
+135924
+Increasing to 0.5.
+The plateu is stable (no overfitting), but it is stuck before 0.6 acc.
+
+
+decrease size of dense layers. ((9*2)**2)
