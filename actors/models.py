@@ -4,6 +4,7 @@ import random
 from actors.actions import Action2DFactory, GameAction2D, ModelAction2D
 from actors.networks import movement_network, load_model
 from actors.observations import ModelObservation2D, GameObservation2D, Observation2DFactory
+from envs.dims import neighborhood2d
 
 
 class BaseMemoryBuffer:
@@ -80,7 +81,7 @@ class SquashedTraceBuffer(ExperienceBuffer):
         samples = ExperienceBuffer.sample(self, batch_size, trace_length)
         return samples.reshape([samples.shape[0]*samples.shape[1], samples.shape[2]])
 
-class BaseActor:
+class BaseMemoryActor:
     def __init__(self):
         self.memory =BaseMemoryBuffer()
 
@@ -102,7 +103,73 @@ class Epsilon:
         return np.random.random() < self.value
 
 
-class Actor(BaseActor):
+class BaseActor:
+    def __init__(
+            self,
+            action_factory: Action2DFactory,
+            observation_factory: Observation2DFactory,
+         ):
+        self.action_factory = action_factory
+        self.observation_factory = observation_factory
+
+
+    def create_action(self, state: GameObservation2D):
+        pass
+
+
+class BotActor(BaseActor):
+    def __init__(
+            self,
+            action_factory: Action2DFactory,
+            observation_factory: Observation2DFactory
+        ):
+        BaseActor.__init__(self, action_factory, observation_factory)
+        input_size = self.observation_factory.cursor.region_source_input.window_size
+        assert input_size==5
+        large_neighborhood = neighborhood2d(input_size)
+        small_neighborhood = neighborhood2d(input_size-2)
+        large_neighborhood= large_neighborhood[~np.all(large_neighborhood == 0, axis=1)]
+        small_neighborhood= small_neighborhood[~np.all(small_neighborhood == 0, axis=1)]
+
+        self.lu_small_nbhood = 2 + small_neighborhood
+        self.lu_large_nbhood = 2 + large_neighborhood
+        empty = np.zeros((input_size,input_size))
+        smlcl = self.lu_small_nbhood.T
+        empty[smlcl[0], smlcl[1]] = True
+        self.lu_small_nbhood_mask = empty.astype(np.bool)
+        empty2 = np.zeros((input_size,input_size))
+        lrgcl = self.lu_large_nbhood.T
+        empty2[lrgcl[0], lrgcl[1]] = True
+        empty2[self.lu_small_nbhood_mask] = False
+        self.lu_large_nbhood_mask = empty2.astype(np.bool)
+
+
+    def create_action(self, state: GameObservation2D):
+        """
+         Ok so:
+         1. check nearest neighbours, if have value, and untoched, move at random. If not possible:
+         2. check outer ring, the same procedure
+        :param state:
+        :return:
+        """
+
+        smbhd_source = state.source_observation[self.lu_small_nbhood_mask]
+        smbhd_result = state.result_observation[self.lu_small_nbhood_mask]
+        go = (smbhd_result == 0) & (smbhd_source != 0)
+        go_indeces = np.nonzero(go[0])
+        if go_indeces[0].size == 0:
+            desperate_move = np.nonzero(smbhd_source)
+            if desperate_move[0].size==0:
+                go_indeces = np.array(range(8))
+            else:
+                go_indeces = desperate_move
+        choice = np.random.choice(go_indeces[1],1)[0]
+        result = np.zeros((1,8))
+        result[0,choice] = 1.0
+        return self.action_factory.movement_only(result)
+
+
+class Actor(BaseMemoryActor, BaseActor):
     def __init__(
             self,
             action_factory: Action2DFactory,
@@ -113,9 +180,8 @@ class Actor(BaseActor):
             trace_length: int,
             gamma: float,
         ):
-        BaseActor.__init__(self,)
-        self.action_factory = action_factory
-        self.observation_factory = observation_factory
+        BaseMemoryActor.__init__(self, )
+        BaseActor.__init__(self, action_factory, observation_factory)
         self.memory = SquashedTraceBuffer(buffer_size=4000)
         self.batch_size = batch_size
         self.trace_length = trace_length

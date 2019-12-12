@@ -10,6 +10,7 @@ from actors.actions import Action2DFactory
 from envs.dims import neighborhood2d
 from actors.networks import movement_network
 #from viz import  Visualisation
+from common_config import LConfig
 import time
 import datetime as dt
 import git
@@ -80,35 +81,47 @@ def create_model_params(action_factory, observation_factory):
     )
     return model_params
 
-def simple_learn(data_path):
+def prepare_game(data_path, config, empty_network=False):
     data_generator = data.LartpcData(data_path)
     env = Environment2D()
     env.set_map(*data_generator[3])
-    game = Game2D(env, max_step_number=4)
+    game = Game2D(env, max_step_number=config.max_step_number)
     #vis = Visualisation(game)
     #vis.update()
     action_factory = Action2DFactory(game.cursor.copy())
     observation_factory = Observation2DFactory(game.cursor.copy())
-    epsilon_kwrgs = dict(value=1.0, decay=0.9987, min=0.5)
+    epsilon_kwrgs = dict(
+        value=config.epsilon_initial_value,
+        decay=config.epsilon_decay,
+        min=config.epsilon_min
+    )
     model_params = create_model_params(action_factory, observation_factory)
-    nm_factory = lambda : movement_network(**model_params)
+    if empty_network:
+        nm_factory = lambda : None
+    else:
+        nm_factory = lambda : movement_network(**model_params)
     actor =  Actor(
         action_factory,
         observation_factory,
         epsilon_kwrgs=epsilon_kwrgs,
         network_model_factory=nm_factory,
-        batch_size= 128,
-        trace_length= 1,
-        gamma = 0.8,
+        batch_size= config.batch_size,
+        trace_length= config.trace_length,
+        gamma = config.gamma,
     )
-    game.max_step_number = 12
+    return game, actor, data_generator
+
+def simple_learn(data_path):
+    config = LConfig()
+    game, actor, data_generator = prepare_game(data_path, config)
+
     history = []
     p = Logger()
-    for iterate_maps in range(4000):
+    for iterate_maps in range(config.maps_iterations):
         map_number = np.random.randint(0, len(data_generator))
         game.env.set_map(*data_generator[map_number])
         iterations = []
-        for iterate_tries in range(8):
+        for iterate_tries in range(config.trials):
             game.start()
             trial_run_history = []
             for model_run_iteration in range(game.max_step_number):
@@ -133,7 +146,6 @@ def simple_learn(data_path):
 
 
 if __name__ == "__main__":
-    data_path = '/home/mwm/repositories/lartpc/lartpc2D-rl/dump'
-    data_path = '/home/mwm/repositories/lartpc/lartpc_notebooks/Blog/content/dump'
+    data_path = './dump'
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)

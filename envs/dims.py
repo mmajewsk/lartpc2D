@@ -3,7 +3,7 @@ import math
 
 import numpy as np
 
-def neighborhood2d(size=3):
+def neighborhood2d(size=3, ommit_center=False):
 	"""
 	Creates list of neighbourhood square indeces vectors. E.g:
     In[3]: neighborhood2d(3)
@@ -21,7 +21,12 @@ def neighborhood2d(size=3):
 	:return:
 	"""
 	br = list(map(lambda x: x - math.floor(size / 2), range(size)))
-	return np.array(list(itertools.product(*[br, br])))
+	indeces = np.array(list(itertools.product(*[br, br])))
+	if ommit_center:
+		indeces = indeces[~np.all(indeces == 0, axis=1)]
+	return indeces
+
+
 
 
 

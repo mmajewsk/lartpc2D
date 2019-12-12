@@ -8,8 +8,6 @@ class GameObservation2D:
         :param source_oservation: of at least 2D
         :param result_observation:  of at least 2D
         """
-
-
         self.source_observation = source_oservation
         self.result_observation = result_observation
 
