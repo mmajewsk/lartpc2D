@@ -13,8 +13,8 @@ def categorisation_network(input_parameters, output_parameters, other_params):
     source_feature_size = input_parameters['source_feature_size']
     result_output_size = output_parameters['result_output']
     source_input = Input((None, source_feature_size), name='source_input')
-    dense_size = source_feature_size**2
-    dropout_rate = 0.2
+    dense_size = other_params['dense_size']
+    dropout_rate = other_params['dropout_rate']
     l = Dense(dense_size)(source_input)
     l = Activation("relu")(l)
     l = Dropout(rate=dropout_rate)(l)
@@ -93,11 +93,12 @@ if __name__=="__main__":
         'result_output': 9*3,
     }
     other_params = {
-
+        'dense_size': (9*3)**2,
+        'dropout_rate': 0.2
     }
     logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=logdir)
     model = categorisation_network(input_params, output_params, other_params)
-    model.fit_generator(batch_generator(data_generator), steps_per_epoch=100, epochs=50, callbacks=[tensorboard_callback])
+    model.fit_generator(batch_generator(data_generator), steps_per_epoch=200, epochs=100, callbacks=[tensorboard_callback])
 
 
