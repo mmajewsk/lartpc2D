@@ -114,5 +114,39 @@ This helped a lot, altough the plateu is still there.
 Increasing to 0.5.
 The plateu is stable (no overfitting), but it is stuck before 0.6 acc.
 
-
+144130
 decrease size of dense layers. ((9*2)**2)
+slight increase overall
+
+150400
+decreasing to (9**2), in the meantime, adding split for the data 
+Just slower learning curve, no plateu.
+
+#13.12.2019
+
+170228
+I enhanced number of samples, lets see how that influences the network,
+Going back to ((9*2)**2)
+
+171259
+lets change it to 14**2
+This changes nothing, it is a problem of different matter.
+
+170228
+Lets add one more layer and see. and go back to (9*2)**2, we should is iff layers were limiting factor.
+Does not change anything.
+
+changing class weights by power of 2
+This did not help at all as well
+
+#14.12.2019
+
+Lets change it to 3x3 input 1x1 output. And go back with weights.
+
+#19.12.2019
+
+Ok, changes to the output were applied, initial trials show improvement.
+This means that its hard to guess 3x3 from 3x3.
+
+
+
