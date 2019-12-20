@@ -1,14 +1,17 @@
 from scripts.classic_conv import conv_net_gdata_generator
+from common_configs import ClassicConfConfig
 import numpy as np
 import data
 
 if __name__ == "__main__":
+    network_config = ClassicConfConfig()
     data_generator = data.LartpcData.from_path('../dump')
     Y = np.array([0.,0.,0.])
-    for i,(x,y) in enumerate(conv_net_gdata_generator(data_generator)):
+    for i,(x,y) in enumerate(conv_net_gdata_generator(data_generator, network_config)):
         if i==1000:
             break
-        sm = np.squeeze(y).sum(axis=0).sum(axis=0)
+        sm = np.squeeze(y)
+        sm = sm.sum(axis=0)
         Y+=sm
     print(Y)
     print(sum(Y))
@@ -26,3 +29,12 @@ if __name__ == "__main__":
     # [1.         1.75350529 3.19063798]
     # avg :       1.76       3.13
     # as list: [1,1.76,3.13]
+    #
+    #
+    # with extended neighbours:
+    # [1.         3.87610333 7.22036896]
+    # [1.         4.04957124 6.59997143]
+    # [1.         3.98504054 6.79593967]
+    # [1.         3.98144402 6.81146786]
+    # [1.         4.04999677 6.56913416]
+    # avg: [1.        , 3.98, 6.79])

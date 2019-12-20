@@ -10,7 +10,7 @@ from actors.actions import Action2DFactory
 from envs.dims import neighborhood2d
 from actors.networks import movement_network
 #from viz import  Visualisation
-from common_config import LConfig
+from common_configs import GameConfig
 import time
 import datetime as dt
 import git
@@ -112,7 +112,7 @@ def prepare_game(data_path, config, empty_network=False):
     return game, actor, data_generator
 
 def simple_learn(data_path):
-    config = LConfig()
+    config = GameConfig()
     game, actor, data_generator = prepare_game(data_path, config)
 
     history = []

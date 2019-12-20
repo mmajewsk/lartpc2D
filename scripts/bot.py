@@ -1,4 +1,4 @@
-from common_config import LConfig
+from common_configs import GameConfig
 import data
 from envs.game import Environment2D,Game2D
 from actors.actions import Action2DFactory
@@ -9,7 +9,7 @@ import numpy as np
 
 
 def bot_replay(data_path):
-    config = LConfig()
+    config = GameConfig()
     config.max_step_number = 20
     data_generator = data.LartpcData.from_path(data_path)
     env = Environment2D()

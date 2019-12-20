@@ -2,10 +2,10 @@ from pathlib import  Path
 import numpy as np
 from viz import  Visualisation
 from scripts.train import prepare_game
-from common_config import LConfig
+from common_configs import GameConfig
 
 def simple_replay(data_path):
-    config = LConfig()
+    config = GameConfig()
     game, actor, data_generator = prepare_game(data_path, config, empty_network=True)
     vis = Visualisation(game)
     actor.load_models(Path('./model_dumps'))
