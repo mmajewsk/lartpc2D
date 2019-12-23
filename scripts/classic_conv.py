@@ -1,7 +1,8 @@
 from keras.models import Model
-from keras.layers import Dense, Activation, Input, Dropout
-from keras.optimizers import Adam
+from keras.layers import Dense, Activation, Input, Dropout, BatchNormalization
+from keras.optimizers import Adam, SGD
 from datetime import datetime
+from keras.callbacks import ModelCheckpoint
 import numpy as np
 import data
 from keras.callbacks import TensorBoard
@@ -17,22 +18,27 @@ def categorisation_network(network_config):
     dense_size = network_config.dense_size
     dropout_rate = network_config.dropout_rate
     l = Dense(dense_size)(source_input)
+    l = BatchNormalization()(l)
     l = Activation("relu")(l)
     l = Dropout(rate=dropout_rate)(l)
     l = Dense(dense_size)(l)
+    l = BatchNormalization()(l)
     l = Activation("relu")(l)
     l = Dropout(rate=dropout_rate)(l)
     l = Dense(dense_size)(l)
+    l = BatchNormalization()(l)
     l = Activation("relu")(l)
     l = Dropout(rate=dropout_rate)(l)
     l = Dense(dense_size)(l)
+    l = BatchNormalization()(l)
     l = Activation("relu")(l)
     l = Dropout(rate=dropout_rate)(l)
     l = Dense(result_output_size)(l)
     output = Activation("sigmoid")(l)
     model = Model(inputs=[source_input], outputs=[output])
     adam = Adam(lr=0.00001)
-    model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['mse','acc'])
+    sgd = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['mse','acc'])
     return model
 
 def add_neighbours(ind_x, ind_y, mix=True):
@@ -118,18 +124,23 @@ def batch_generator(data_generator : data.LartpcData, network_config: ClassicCon
                 yield batch
 
 if __name__=="__main__":
-    dump_filepath = '../dump' # local
-    #dump_filepath = '/home/mwm/repositories/content/dump'  # home cluster
+    #dump_filepath = '../dump' # local
+    dump_filepath = '/home/mwm/repositories/content/dump'  # home cluster
     data_generator = data.LartpcData.from_path(dump_filepath)
+    train_data = data_generator.get_range(0,800)
+    validation_data = data_generator.get_range(800,1000)
     network_config = ClassicConfConfig()
     logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=logdir)
     model = categorisation_network(network_config=network_config)
+    mc = ModelCheckpoint('../model_dumps/categorisation/weights{epoch:08d}.h5', save_weights_only=True, period=30)
     model.fit_generator(
-        batch_generator(data_generator, network_config),
+        batch_generator(train_data, network_config),
         steps_per_epoch=200,
-        epochs=100,
-        callbacks=[tensorboard_callback]
+        epochs=300,
+        callbacks=[tensorboard_callback, mc],
+        validation_data=batch_generator(validation_data, network_config),
+        validation_steps=100,
     )
 
 

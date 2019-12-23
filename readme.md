@@ -148,5 +148,43 @@ Lets change it to 3x3 input 1x1 output. And go back with weights.
 Ok, changes to the output were applied, initial trials show improvement.
 This means that its hard to guess 3x3 from 3x3.
 
+#20.12.2019
 
+The experimentation starts now.
 
+130216
+First one without the nans. I needed to add batch normalisation.
+Looks ok, now its time to introduce validation as well.
+
+135906
+Added validation at 100 steps.
+It seems to be doing really good.
+
+xxxx
+Increased dropout to 0.5, increased val steps to 400
+Stopping. 400 is waay to much, this includes batches.
+
+xxxx
+Going to do 40. Stopping again, val acc started ad 0.01
+Trying 80
+
+Lost results, but the slope was much less steeper.
+
+153856
+0.0 dropout, incresed epochs to 200 to see when it will overfit
+noticed some unstability over 120 in validation, increasing validation to 100
+
+172138
+300 epochs, val steps 100
+it seems that adams learning rate diverges.
+
+212148
+changing optimiser to sgd with lr 0.00001 mom 0.9 nestr true
+It seems the best thing so far, also really saturated.
+
+#23.12.2019
+
+205120
+the same run, just dumped model every nth epoch
+
+Thats it for the conv net. Its time to incorporate this to RL.

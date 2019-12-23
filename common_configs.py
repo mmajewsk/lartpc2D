@@ -21,11 +21,10 @@ class ClassicConfConfig:
     #output_params
     output_window_size : int = 1
     result_output : int = 1 * 3
-
-    # output_params  = {'output_window_size': 3'result_output': 9*3}
-
+    # output_window_size : int = 1
+    # result_output : int = 1 * 3
     #other_params
     dense_size : int = ((9) ** 2)
-    dropout_rate : float = 0.1
+    dropout_rate : float = 0.0
     batch_size : int = 128
     extended_neighbours : bool = True
