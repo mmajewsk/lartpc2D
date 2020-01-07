@@ -8,7 +8,7 @@ import numpy as np
 from actors.models import Actor
 from actors.actions import Action2DFactory
 from envs.dims import neighborhood2d
-from actors.networks import movement_network
+from actors.networks import ParameterBasedNetworks, load_model
 #from viz import  Visualisation
 from common_configs import GameConfig
 import time
@@ -81,7 +81,7 @@ def create_model_params(action_factory, observation_factory):
     )
     return model_params
 
-def prepare_game(data_path, config, empty_network=False):
+def prepare_game(data_path, config, network_type='empty'):
     data_generator = data.LartpcData.from_path(data_path)
     env = Environment2D()
     env.set_map(*data_generator[3])
@@ -96,10 +96,18 @@ def prepare_game(data_path, config, empty_network=False):
         min=config.epsilon_min
     )
     model_params = create_model_params(action_factory, observation_factory)
-    if empty_network:
+
+    if network_type=='empty':
         nm_factory = lambda : None
     else:
-        nm_factory = lambda : movement_network(**model_params)
+        network_builder = ParameterBasedNetworks(**model_params)
+        if network_type=='movement':
+            nm_factory = network_builder.movement_network_compiled
+        elif network_type=='read_conv':
+            category_network = load_model(config.conv_model_path)
+            nm_factory =  lambda : network_builder.movement_and_category(category_network)
+        else:
+            raise ValueError
     actor =  Actor(
         action_factory,
         observation_factory,
@@ -108,6 +116,8 @@ def prepare_game(data_path, config, empty_network=False):
         batch_size= config.batch_size,
         trace_length= config.trace_length,
         gamma = config.gamma,
+        categorisation_mode='network',
+        decision_mode='network',
     )
     return game, actor, data_generator
 
@@ -116,7 +126,7 @@ def simple_learn(data_path):
     game, actor, data_generator = prepare_game(data_path, config)
 
     history = []
-    p = Logger()
+    logger = Logger()
     for iterate_maps in range(config.maps_iterations):
         map_number = np.random.randint(0, len(data_generator))
         game.env.set_map(*data_generator[map_number])
@@ -136,13 +146,13 @@ def simple_learn(data_path):
             iterations.append(trial_run_history.copy())
             if actor.enough_samples_to_learn():
                 h = actor.replay()
-                p.add_train_history(h)
+                logger.add_train_history(h)
                 actor.target_train()
-        p.game_records(dict(map=map_number, data=iterations))
+        logger.game_records(dict(map=map_number, data=iterations))
         if actor.enough_samples_to_learn() and iterate_maps%4==0:
-            p.plot()
+            logger.plot()
         actor.dump_models(Path('./model_dumps'))
-        p.dump_log()
+        logger.dump_log()
 
 
 if __name__ == "__main__":

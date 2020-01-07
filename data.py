@@ -6,11 +6,11 @@ from collections import  OrderedDict
 
 class LartpcData:
 
-    def __init__(self, source_data: OrderedDict, target_data: OrderedDict):
-        self.source_dict = source_data
-        self.target_dict = target_data
+    def __init__(self, source_list: list, target_list: list):
+        self.source_list = source_list
+        self.target_list = target_list
         self.index = 0
-        self.length = len(source_data)
+        self.length = len(source_list)
 
     @staticmethod
     def from_path(data_filepath):
@@ -18,10 +18,12 @@ class LartpcData:
         source_files_list = [x for x in data_filepath.iterdir() if 'image' in x.name]
         source_files_range = [ int(x.name[len('image'):].split('.')[0]) for x in source_files_list]
         source_dict = OrderedDict(sorted(zip(source_files_range,source_files_list), key=lambda x:x[0]))
+        source_list = [ path for index, path in  source_dict.items()]
         target_files_list = [x for x in data_filepath.iterdir() if 'label' in x.name]
         target_files_range = [ int(x.name[len('label'):].split('.')[0]) for x in target_files_list]
         target_dict = OrderedDict(sorted(zip(target_files_range,target_files_list), key=lambda x:x[0]))
-        return LartpcData(source_dict, target_dict)
+        target_list = [ path for index, path in target_dict.items()]
+        return LartpcData(source_list, target_list)
 
     def __len__(self):
         return self.length
@@ -30,12 +32,12 @@ class LartpcData:
         return scipy.sparse.load_npz(npz_path).todense()
 
     def __getitem__(self, item):
-        s_path, s_target = self.source_dict[item], self.target_dict[item]
+        s_path, s_target = self.source_list[item], self.target_list[item]
         source, target = self._read_array(s_path), self._read_array(s_target)
         return source, target
 
     def get_range(self, min, max):
-        return LartpcData(self.source_dict[min:max], self.target_dict[min:max])
+        return LartpcData(self.source_list[min:max], self.target_list[min:max])
 
     def random(self):
         return self[np.random.randint(0, len(self))]

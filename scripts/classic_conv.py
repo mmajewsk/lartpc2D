@@ -1,45 +1,13 @@
-from keras.models import Model
-from keras.layers import Dense, Activation, Input, Dropout, BatchNormalization
-from keras.optimizers import Adam, SGD
 from datetime import datetime
 from keras.callbacks import ModelCheckpoint
 import numpy as np
 import data
 from keras.callbacks import TensorBoard
 from keras.utils import to_categorical
+from actors.networks import categorisation_network
 from envs.dims import neighborhood2d
 from common_configs import ClassicConfConfig
 
-
-def categorisation_network(network_config):
-    source_feature_size = network_config.source_feature_size
-    result_output_size = network_config.result_output
-    source_input = Input((None, source_feature_size), name='source_input')
-    dense_size = network_config.dense_size
-    dropout_rate = network_config.dropout_rate
-    l = Dense(dense_size)(source_input)
-    l = BatchNormalization()(l)
-    l = Activation("relu")(l)
-    l = Dropout(rate=dropout_rate)(l)
-    l = Dense(dense_size)(l)
-    l = BatchNormalization()(l)
-    l = Activation("relu")(l)
-    l = Dropout(rate=dropout_rate)(l)
-    l = Dense(dense_size)(l)
-    l = BatchNormalization()(l)
-    l = Activation("relu")(l)
-    l = Dropout(rate=dropout_rate)(l)
-    l = Dense(dense_size)(l)
-    l = BatchNormalization()(l)
-    l = Activation("relu")(l)
-    l = Dropout(rate=dropout_rate)(l)
-    l = Dense(result_output_size)(l)
-    output = Activation("sigmoid")(l)
-    model = Model(inputs=[source_input], outputs=[output])
-    adam = Adam(lr=0.00001)
-    sgd = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['mse','acc'])
-    return model
 
 def add_neighbours(ind_x, ind_y, mix=True):
     add_window = neighborhood2d(3)

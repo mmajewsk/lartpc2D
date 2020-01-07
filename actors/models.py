@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import  Path
 import random
 from actors.actions import Action2DFactory, GameAction2D, ModelAction2D
-from actors.networks import movement_network, load_model
+from actors.networks import movement_network_compiled, load_model
 from actors.observations import ModelObservation2D, GameObservation2D, Observation2DFactory
 from envs.dims import neighborhood2d
 
@@ -166,7 +166,8 @@ class BotActor(BaseActor):
         choice = np.random.choice(go_indeces[1],1)[0]
         result = np.zeros((1,8))
         result[0,choice] = 1.0
-        return self.action_factory.movement_only(result)
+        ModelAction2D()
+        return self.action_factory.randomise_category(result)
 
 
 class Actor(BaseMemoryActor, BaseActor):
@@ -179,7 +180,9 @@ class Actor(BaseMemoryActor, BaseActor):
             batch_size: int,
             trace_length: int,
             gamma: float,
-        ):
+            decision_mode: str = 'network',
+            categorisation_mode: str = 'network',
+    ):
         BaseMemoryActor.__init__(self, )
         BaseActor.__init__(self, action_factory, observation_factory)
         self.memory = SquashedTraceBuffer(buffer_size=4000)
@@ -190,6 +193,11 @@ class Actor(BaseMemoryActor, BaseActor):
         self.target_model = network_model_factory()
         self.gamma = gamma
         self.tau = .225
+        assert decision_mode in ['network', 'random']
+        assert categorisation_mode in ['network', 'random']
+        self.decision_mode = decision_mode
+        self.categorisation_mode = categorisation_mode
+        self._choose_action_creation()
 
     def load_models(self, path: Path):
         self.model = load_model(path/'model.h5')
@@ -203,10 +211,21 @@ class Actor(BaseMemoryActor, BaseActor):
         model_obs = self.observation_factory.game_to_model_observation(state)
         return self.model_action(model_obs)
 
-    def model_action(self, state: ModelObservation2D):
-        model_response = self.model.predict(self.observation_factory.to_network_input(state))
-        action = self.action_factory.movement_only(model_response[0])
-        return action
+    def _choose_action_creation(self):
+        if self.categorisation_mode is 'random' and self.decision_mode is 'random':
+            self.model_action = lambda x: self.action_factory.create_random_action()
+        else:
+            if self.categorisation_mode is 'network' and self.decision_mode is 'network':
+                post_action = lambda x: x
+            elif self.categorisation_mode is 'random':
+                post_action = self.action_factory.randomise_category
+            elif self.decision_mode is 'random':
+                post_action = self.action_factory.randomise_movement
+            def model_response(state) -> ModelAction2D:
+                response = self.model.predict(self.observation_factory.to_network_input(state))
+                action = ModelAction2D(*response)
+                return post_action(action)
+            self.model_action = model_response
 
     def enough_samples_to_learn(self):
         return len(self.memory.buffer) >self.batch_size

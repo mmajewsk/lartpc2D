@@ -6,7 +6,7 @@ from common_configs import GameConfig
 
 def simple_replay(data_path):
     config = GameConfig()
-    game, actor, data_generator = prepare_game(data_path, config, empty_network=True)
+    game, actor, data_generator = prepare_game(data_path, config, network_type='empty')
     vis = Visualisation(game)
     actor.load_models(Path('./model_dumps'))
     game.max_step_number =12

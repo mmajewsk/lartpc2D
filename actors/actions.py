@@ -89,10 +89,16 @@ class Action2DFactory:
         flat_movement, flat_data = flat_array[:self.movement_size], flat_array[self.movement_size:]
         return ModelAction2D(flat_movement, flat_data)
 
-    def movement_only(self, movement):
-        assert movement.shape==(1,self.movement_size), "Incorrect shape, expected {} got {}".format((1,self.movement_size), movement.shape)
+    def randomise_category(self, action: ModelAction2D) -> ModelAction2D:
+        assert action.movement_decision.shape==(1,self.movement_size), "Incorrect shape, expected {} got {}".format((1,self.movement_size), movement.shape)
         dummy_model = self.create_random_action()
-        dummy_model.movement_decision = movement
+        action.put_decision = dummy_model.put_decision
+        return dummy_model
+
+    def randomise_movement(self, action: ModelAction2D) -> ModelAction2D:
+        assert action.put_decision.shape==(1,self.data_size), "Incorrect shape, expected {} got {}".format((1,self.movement_size), movement.shape)
+        dummy_model = self.create_random_action()
+        action.movement_decision = dummy_model.movement_decision
         return dummy_model
 
     def model_action_to_flat(self, action: ModelAction2D) -> np.ndarray:
