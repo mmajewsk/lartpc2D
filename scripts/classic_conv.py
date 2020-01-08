@@ -101,7 +101,7 @@ if __name__=="__main__":
     logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=logdir)
     model = categorisation_network(network_config=network_config)
-    mc = ModelCheckpoint('../model_dumps/categorisation/weights{epoch:08d}.h5', save_weights_only=True, period=30)
+    mc = ModelCheckpoint('../model_dumps/categorisation/model{epoch:08d}.h5', period=30)
     model.fit_generator(
         batch_generator(train_data, network_config),
         steps_per_epoch=200,

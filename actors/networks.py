@@ -3,6 +3,7 @@ from keras.models import Model, load_model
 from keras.layers import Input, Concatenate, Dense, Activation, Dropout, BatchNormalization
 from keras.optimizers import Adam, SGD
 from keras.models import load_model
+from common_configs import ClassicConfConfig
 
 
 def create_movement_inputs(source_feature_size, result_feature_size):
@@ -75,7 +76,7 @@ class ParameterBasedNetworks:
         model.compile(optimizer=adam, **compile_kwrgs)
 
 
-def categorisation_network(network_config):
+def categorisation_network(network_config : ClassicConfConfig):
     source_feature_size = network_config.source_feature_size
     result_output_size = network_config.result_output
     source_input = Input((None, source_feature_size), name='source_input')

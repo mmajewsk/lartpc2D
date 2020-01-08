@@ -81,7 +81,8 @@ def create_model_params(action_factory, observation_factory):
     )
     return model_params
 
-def prepare_game(data_path, config, network_type='empty'):
+def prepare_game(data_path, config: GameConfig, network_type='empty'):
+
     data_generator = data.LartpcData.from_path(data_path)
     env = Environment2D()
     env.set_map(*data_generator[3])
@@ -123,7 +124,7 @@ def prepare_game(data_path, config, network_type='empty'):
 
 def simple_learn(data_path):
     config = GameConfig()
-    game, actor, data_generator = prepare_game(data_path, config)
+    game, actor, data_generator = prepare_game(data_path, config, network_type='read_conv')
 
     history = []
     logger = Logger()

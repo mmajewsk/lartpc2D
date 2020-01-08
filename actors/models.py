@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import  Path
 import random
 from actors.actions import Action2DFactory, GameAction2D, ModelAction2D
-from actors.networks import movement_network_compiled, load_model
+from actors.networks import load_model
 from actors.observations import ModelObservation2D, GameObservation2D, Observation2DFactory
 from envs.dims import neighborhood2d
 

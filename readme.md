@@ -188,3 +188,9 @@ It seems the best thing so far, also really saturated.
 the same run, just dumped model every nth epoch
 
 Thats it for the conv net. Its time to incorporate this to RL.
+
+#08.01.2020
+
+So the last model in rl uses window of 5x5, and so i will modify classic conv to match this.
+
+First of all I need to recalculate weights for the classes.

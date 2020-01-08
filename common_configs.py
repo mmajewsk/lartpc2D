@@ -11,6 +11,7 @@ class GameConfig:
     epsilon_initial_value = 1.0
     epsilon_decay: float = 0.9987
     epsilon_min: float = 0.5
+    conv_model_path: str = "/home/mwm/repositories/lartpc/lartpc2D-rl/model_dumps/categorisation/model00000030.h5"
 
 
 @dataclass
