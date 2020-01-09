@@ -194,3 +194,12 @@ Thats it for the conv net. Its time to incorporate this to RL.
 So the last model in rl uses window of 5x5, and so i will modify classic conv to match this.
 
 First of all I need to recalculate weights for the classes.
+Weight seem to be pretty much the same. keeping the old ones.
+
+So i ran into the problem of the output of categorisation being of probability of 3 classes
+Like [0.555, 0.12, 0.03], but desired output space is of categorical values.
+I need to redo that.
+But also will need to include that in replay process and bot, and visualisation.
+Ok got that covered.
+*iMPORTANT NOTE:* Visualisation pick now the max class to display
+

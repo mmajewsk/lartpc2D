@@ -144,7 +144,7 @@ class BotActor(BaseActor):
         self.lu_large_nbhood_mask = empty2.astype(np.bool)
 
 
-    def create_action(self, state: GameObservation2D):
+    def create_action(self, state: GameObservation2D) -> ModelAction2D:
         """
          Ok so:
          1. check nearest neighbours, if have value, and untoched, move at random. If not possible:
@@ -155,6 +155,8 @@ class BotActor(BaseActor):
 
         smbhd_source = state.source_observation[self.lu_small_nbhood_mask]
         smbhd_result = state.result_observation[self.lu_small_nbhood_mask]
+        assert smbhd_result.shape[-1] == 3
+        smbhd_result = np.argmax(smbhd_result, axis=1)
         go = (smbhd_result == 0) & (smbhd_source != 0)
         go_indeces = np.nonzero(go[0])
         if go_indeces[0].size == 0:
@@ -166,8 +168,9 @@ class BotActor(BaseActor):
         choice = np.random.choice(go_indeces[1],1)[0]
         result = np.zeros((1,8))
         result[0,choice] = 1.0
-        ModelAction2D()
-        return self.action_factory.randomise_category(result)
+        action = self.action_factory.create_random_action()
+        action.movement_decision = result
+        return action
 
 
 class Actor(BaseMemoryActor, BaseActor):

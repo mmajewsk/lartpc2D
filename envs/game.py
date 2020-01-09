@@ -6,10 +6,11 @@ import pandas as pd
 from abc import abstractmethod, ABC
 
 class BaseEnvironment(ABC):
-    def __init__(self):
+    def __init__(self, result_dimensions = None):
         self.source_map = None
         self.target_map = None
         self.result_map = None
+        self.result_dimensions = result_dimensions
 
     @property
     @abstractmethod
@@ -37,11 +38,15 @@ class BaseEnvironment(ABC):
         if result is not None:
             self.result_map = result
         else:
-            self.result_map = np.zeros_like(self.target_map)
+            if self.result_dimensions is not None:
+                self.result_map = np.zeros(self.target_map.shape+(self.result_dimensions,))
+            else:
+                self.result_map = np.zeros_like(self.target_map)
+
         self.read_source_nonzero_indeces()
         self.create_nonzero_df(self.nonzero_indeces)
 
-    def get_map(self):
+    def get_maps(self):
         return self.source_map, self.target_map, self.result_map
 
 
@@ -81,9 +86,8 @@ class Game2D:
 
 
     def _act(self, action: GameAction2D) -> bool:
-        assert action.put_data.shape==self.cursor.region_output.shape
-        ones_put = np.ones_like(action.put_data)
-        self.cursor.set_range(self.env.result_map, ones_put)
+        assert action.put_data.shape==self.cursor.region_output.shape+(3,)
+        self.cursor.set_range(self.env.result_map, action.put_data)
         new_center = self.cursor.current_center + action.movement_vector
         if self._outside_marigin(new_center):
             action_success = False

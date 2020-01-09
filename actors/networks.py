@@ -12,8 +12,8 @@ def create_movement_inputs(source_feature_size, result_feature_size):
     return source_data_input, result_data_input
 
 def create_movement_output(previous_layer, possible_moves):
-    output = Dense(possible_moves,name='movement_output' )(previous_layer)
-    #output = Activation('softmax', name='movement_output')(output)
+    output = Dense(possible_moves,name='output_movement' )(previous_layer)
+    #output = Activation('softmax', name='output_movement')(output)
     return output
 
 
@@ -51,7 +51,7 @@ class ParameterBasedNetworks:
         )
         compile_kwrgs = {}
         compile_kwrgs['loss'] = {
-            'movement_output': 'mse'
+            'output_movement': 'mse'
         }
         compile_kwrgs['metrics'] = ['mae', 'acc']
         adam = Adam(lr=0.00001)
@@ -69,11 +69,12 @@ class ParameterBasedNetworks:
         compile_kwrgs = {}
         compile_kwrgs['loss'] = {
             'output_movement': 'mse',
-            'output_category': 'categorical_crossentropy'
+            'model_1': 'categorical_crossentropy'
         }
         compile_kwrgs['metrics'] = ['mse','mae', 'acc']
         adam = Adam(lr=0.00001)
         model.compile(optimizer=adam, **compile_kwrgs)
+        return model
 
 
 def categorisation_network(network_config : ClassicConfConfig):

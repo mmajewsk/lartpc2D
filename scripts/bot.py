@@ -12,12 +12,13 @@ def bot_replay(data_path):
     config = GameConfig()
     config.max_step_number = 20
     data_generator = data.LartpcData.from_path(data_path)
-    env = Environment2D()
+    result_dimensions = 3
+    env = Environment2D(result_dimensions=result_dimensions)
     env.set_map(*data_generator[3])
     game = Game2D(env, max_step_number=config.max_step_number)
     vis = Visualisation(game)
     #vis.update()
-    action_factory = Action2DFactory(game.cursor.copy())
+    action_factory = Action2DFactory(game.cursor.copy(), categories=result_dimensions)
     observation_factory = Observation2DFactory(game.cursor.copy())
     actor = BotActor(
         action_factory,
@@ -40,6 +41,5 @@ def bot_replay(data_path):
 
 
 if __name__ == "__main__":
-    data_path = '/home/mwm/repositories/lartpc/lartpc2D-rl/dump'
-    data_path = '/home/mwm/repositories/lartpc/lartpc_notebooks/Blog/content/dump'
+    data_path = './dump'
     bot_replay(data_path)
