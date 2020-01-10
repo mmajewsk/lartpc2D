@@ -203,3 +203,7 @@ But also will need to include that in replay process and bot, and visualisation.
 Ok got that covered.
 *iMPORTANT NOTE:* Visualisation pick now the max class to display
 
+I also need to change observation to state like observation, because new network desires target to be included in learning.
+
+#10.01.2020
+So both models work. The loss does not make sense really for the movement. But this is a good start.

@@ -28,8 +28,11 @@ class LartpcData:
     def __len__(self):
         return self.length
 
-    def _read_array(self, npz_path):
-        return scipy.sparse.load_npz(npz_path).todense()
+    def _read_array(self, npz_path) -> np.ndarray:
+        matrix = scipy.sparse.load_npz(npz_path)
+        matrix_dense = matrix.todense()
+        np_arr = np.asarray(matrix_dense)
+        return np_arr
 
     def __getitem__(self, item):
         s_path, s_target = self.source_list[item], self.target_list[item]

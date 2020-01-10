@@ -3,6 +3,7 @@ from pathlib import  Path
 import random
 from actors.actions import Action2DFactory, GameAction2D, ModelAction2D
 from actors.networks import load_model
+from actors.states import GameVisibleState2D, ModelVisibleState2D, VisibleState2DFactory
 from actors.observations import ModelObservation2D, GameObservation2D, Observation2DFactory
 from envs.dims import neighborhood2d
 
@@ -30,9 +31,10 @@ class ExperienceBuffer(BaseMemoryBuffer):
         self.buffer = []
         self.buffer_size = buffer_size
 
-    def add(self,experience):
+    def add(self, experience : list):
         # if the buffer overflows over the size,
         # delete old from the beginning
+
         buffer_overflow = (len(self.buffer) + 1 >= self.buffer_size)
         if buffer_overflow:
             old_to_overwrite = (1+len(self.buffer))-self.buffer_size
@@ -111,6 +113,7 @@ class BaseActor:
          ):
         self.action_factory = action_factory
         self.observation_factory = observation_factory
+        self.state_factory = VisibleState2DFactory(observation_factory)
 
 
     def create_action(self, state: GameObservation2D):
@@ -225,7 +228,8 @@ class Actor(BaseMemoryActor, BaseActor):
             elif self.decision_mode is 'random':
                 post_action = self.action_factory.randomise_movement
             def model_response(state) -> ModelAction2D:
-                response = self.model.predict(self.observation_factory.to_network_input(state))
+                observation_to_predict = self.observation_factory.to_network_input(state)
+                response = self.model.predict(observation_to_predict)
                 action = ModelAction2D(*response)
                 return post_action(action)
             self.model_action = model_response
@@ -242,29 +246,38 @@ class Actor(BaseMemoryActor, BaseActor):
 
     def add_future_to_samples(self, samples):
         batched_samples = [[], []]
-        batched_targets = []
+        batched_targets = [[],[]]
         # effectively len(samples) == self.batches
         assert len(samples) ==self.batch_size
         for sample in samples:
-            state, action, reward, new_state, done = sample
-            state = self.observation_factory.game_to_model_observation(state)
-            target_arr = self.target_model.predict(self.observation_factory.to_network_input(state))
-            target_arr = target_arr.squeeze()
-            if done:
-                target_arr[action.movement_number] = reward
+            assert len(sample) == 3
+            assert isinstance(sample[0], GameVisibleState2D)
+            assert isinstance(sample[1], GameAction2D)
+            assert isinstance(sample[2], GameVisibleState2D)
+            current_state, action, new_state = sample
+            #state, action, reward, new_state, done = sample
+            observation = self.observation_factory.game_to_model_observation(current_state.obs)
+            observation_to_predict = self.observation_factory.to_network_input(observation)
+            movement_target, category_target = self.target_model.predict(observation_to_predict)
+            movement_target = movement_target.squeeze()
+            if new_state.done:
+                movement_target[action.movement_number] = new_state.reward
             else:
-                future = self.target_model.predict(self.observation_factory.to_network_input(state)).squeeze()
-                Q_future = max(future)
-                target_arr[action.movement_number] = reward + Q_future * self.gamma
-
-            target = np.expand_dims(np.expand_dims(target_arr, axis=0), axis=0)
-            batched_targets.append(target)
-            batched_samples[0].append(state.source_data)
-            batched_samples[1].append(state.result_data)
-        y = np.array(batched_targets)
+                future_movement, predicted_classes = self.target_model.predict(self.observation_factory.to_network_input(observation))
+                Q_future = max(future_movement.squeeze())
+                movement_target[action.movement_number] = new_state.reward + Q_future * self.gamma
+            movement_target_with_future = np.expand_dims(np.expand_dims(movement_target, axis=0), axis=0)
+            current_model_state = self.state_factory.game_to_model_visible_state(current_state)
+            batched_targets[0].append(movement_target_with_future)
+            batched_targets[1].append(current_model_state.target)
+            batched_samples[0].append(observation.source_data)
+            batched_samples[1].append(observation.result_data)
+        y_mov = np.array(batched_targets[0])
+        y_cat = np.array(batched_targets[1])
         a,b = map(np.array, batched_samples)
-        y = y.squeeze(1)
-        return [a,b],y
+        y_mov = y_mov.squeeze(1)
+        y_cat = y_cat.squeeze(1)
+        return [a,b],[y_mov, y_cat]
 
     def replay(self):
         """

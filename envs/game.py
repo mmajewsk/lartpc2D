@@ -1,5 +1,6 @@
 from actors.actions import GameAction2D
 from actors.observations import GameObservation2D
+from actors.states import GameVisibleState2D
 from envs.cursors import Cursor2D
 import numpy as np
 import pandas as pd
@@ -66,6 +67,7 @@ class Game2D:
         self.reward_history = []
         self.max_step_number = max_step_number
         self.step_number = None
+        self.done = None
 
 
     def move_cursor(self, new_center):
@@ -79,6 +81,7 @@ class Game2D:
                 self.cursor.current_center = center
                 break
         self.step_number = 0
+        self.done = False
 
     def _outside_marigin(self, new_center):
         marigin = self.cursor.region_source_input.r_low
@@ -96,22 +99,24 @@ class Game2D:
             action_success = action.movement_vector.any()
         return action_success
 
-    def step(self, action: GameAction2D):
+    def step(self, action: GameAction2D) -> GameVisibleState2D:
         done = True
         can_move = self.step_number < self.max_step_number -1
         last_move = self.step_number == self.max_step_number -1
         if can_move:
             action_success = self._act(action)
-            # if action succedded, than it is not done
+            # if action succedded, then it is not done
             if not last_move and action_success:
                 done = False
                 self.step_number += 1
             else:
                 done = True
+        self.done = done
         #if np.count_nonzero(self.get_observation().source_observation) == 0:
         #    done = True
-
-        return self.get_observation(), self.reward(), done, ""
+        state = self.get_state()
+        self.reward_history.append(state.reward)
+        return state
 
     def get_observation(self) -> GameObservation2D:
         source_curs = self.cursor.get_range(self.env.source_map, region_type='source_input')
@@ -119,10 +124,22 @@ class Game2D:
         obs = GameObservation2D(source_curs, result_curs)
         return obs
 
-    def _reward_calc(self, source_cursor, result_cursor):
+    def get_target(self) -> np.ndarray:
+        target_curs = self.cursor.get_range(self.env.target_map, region_type='output')
+        return target_curs
+
+    def get_state(self):
+        return GameVisibleState2D(self.get_observation(), self.get_target(), self.reward(), self.done, "")
+
+    @staticmethod
+    def _reward_calc(game, source_cursor, result_cursor):
         nonzero_source_px = np.count_nonzero(source_cursor)
-        center_pixel = source_cursor[self.cursor.region_source_input.r_low, self.cursor.region_source_input.r_low]
-        discovered_pixels = self.cursor.region_result_input.basic_block_size - np.count_nonzero(result_cursor)
+        if len(result_cursor.shape) == 3:
+            result_categorised = np.argmax(result_cursor, axis=2)
+        else:
+            result_categorised = result_cursor
+        center_pixel = source_cursor[game.cursor.region_source_input.r_low, game.cursor.region_source_input.r_low]
+        discovered_pixels = game.cursor.region_result_input.basic_block_size - np.count_nonzero(result_categorised)
         reward = nonzero_source_px+discovered_pixels*.09
         assert reward>=0
         if discovered_pixels== 0:
@@ -139,8 +156,7 @@ class Game2D:
             source_cursor=self.cursor.get_range(self.env.source_map),
             result_cursor=self.cursor.get_range(self.env.result_map, region_type='result_input'),
         )
-        reward = self._reward_calc(**rewards_dict)
-        self.reward_history.append(reward)
+        reward = Game2D._reward_calc(self, **rewards_dict)
         return reward
 
 

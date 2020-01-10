@@ -67,8 +67,7 @@ class Logger:
 def create_model_params(action_factory, observation_factory):
     input_parameters = dict(
         source_feature_size =observation_factory.cursor.region_source_input.basic_block_size, # size of input window
-        result_feature_size = observation_factory.cursor.region_result_input.basic_block_size, # this is a space where we
-                                   # log touched field (same cursor)
+        result_feature_size = np.prod(observation_factory.result_shape), # this is a space where we
     )
     output_parameters= dict(
         possible_moves = action_factory.movement_size, #where it can move
@@ -91,7 +90,7 @@ def prepare_game(data_path, config: GameConfig, network_type='empty'):
     #vis = Visualisation(game)
     #vis.update()
     action_factory = Action2DFactory(game.cursor.copy(), categories=result_dimensions)
-    observation_factory = Observation2DFactory(game.cursor.copy())
+    observation_factory = Observation2DFactory(game.cursor.copy(), categories=result_dimensions)
     epsilon_kwrgs = dict(
         value=config.epsilon_initial_value,
         decay=config.epsilon_decay,
@@ -137,12 +136,12 @@ def simple_learn(data_path):
             game.start()
             trial_run_history = []
             for model_run_iteration in range(game.max_step_number):
-                curent_state = game.get_observation()
-                model_action = actor.create_action(curent_state)
+                current_state = game.get_state()
+                model_action = actor.create_action(current_state.obs)
                 game_action = actor.action_factory.model_action_to_game(model_action)
-                new_state, reward, done, info = game.step(game_action)
-                trial_run_history.append((curent_state, game_action, reward, new_state, done))
-                if done:
+                new_state = game.step(game_action)
+                trial_run_history.append((current_state, game_action, new_state))
+                if new_state.done:
                     break
             actor.memory.add(trial_run_history)
             iterations.append(trial_run_history.copy())

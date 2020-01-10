@@ -16,12 +16,12 @@ def simple_replay(data_path):
         for iterate_tries in range(10):
             game.start()
             for model_run_iteration in range(game.max_step_number):
-                curent_state = game.get_observation()
-                model_action = actor.create_action(curent_state, use_epsilon=False)
+                current_observation = game.get_observation()
+                model_action = actor.create_action(current_observation, use_epsilon=False)
                 game_action = actor.action_factory.model_action_to_game(model_action)
-                new_state, reward, done, info = game.step(game_action)
+                state = game.step(game_action)
                 vis.update(0)
-                if done:
+                if state.done:
                     break
 
 if __name__ == "__main__":
