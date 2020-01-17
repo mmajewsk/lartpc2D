@@ -1,19 +1,16 @@
-from envs.game import Environment2D, Game2D
+from rl_environments.game import Environment2D, Game2D
 from pathlib import  Path
 from actors.observations import Observation2DFactory
 import data
-import matplotlib.pyplot as plt
-import pickle
 import numpy as np
 from actors.models import Actor
 from actors.actions import Action2DFactory
-from envs.dims import neighborhood2d
+from rl_environments.dims import neighborhood2d
 from actors.networks import ParameterBasedNetworks, load_model
 #from viz import  Visualisation
 from common_configs import GameConfig
-import time
-import datetime as dt
-import git
+from logger import Logger, MLFlowLogger
+
 
 def ftest_draw_random_cursor(data_path):
     data_generator = data.LartpcData.from_path(data_path)
@@ -37,32 +34,6 @@ def ftest_draw_random_cursor(data_path):
             game.cursor.set_range(game.env.result_map, game.cursor.get_range(game.env.target_map))
         vis.update(100)
 
-import matplotlib.pyplot as plt
-class Logger:
-    def __init__(self):
-        self.train_hist = []
-        self.records = []
-        repo = git.Repo(search_parent_directories=True)
-        sha = repo.head.object.hexsha
-        self.outputfilename = 'plots/{}_{}.png'.format(dt.datetime.now().strftime('%Y%m%d%H%M%S'), sha)
-
-    def add_train_history(self, th):
-        self.train_hist.append(th)
-
-    def game_records(self,record):
-        self.records.append(record)
-
-    def plot(self):
-        fig, axe = plt.subplots(3)
-        axe[0].plot([h.history['loss'] for h in self.train_hist])
-        axe[1].plot([h.history['acc'] for h in self.train_hist])
-        axe[2].plot([h.history['mae'] for h in self.train_hist])
-        fig.savefig(self.outputfilename)
-        #plt.show()
-
-    def dump_log(self):
-        with open('loggerdump.pkl','wb') as f:
-            pickle.dump(self, f)
 
 def create_model_params(action_factory, observation_factory):
     input_parameters = dict(
@@ -125,9 +96,9 @@ def prepare_game(data_path, config: GameConfig, network_type='empty'):
 def simple_learn(data_path):
     config = GameConfig()
     game, actor, data_generator = prepare_game(data_path, config, network_type='read_conv')
-
-    history = []
     logger = Logger()
+    mlf_logger = MLFlowLogger()
+    mlf_logger.log_config(config)
     for iterate_maps in range(config.maps_iterations):
         map_number = np.random.randint(0, len(data_generator))
         game.env.set_map(*data_generator[map_number])
@@ -148,15 +119,18 @@ def simple_learn(data_path):
             if actor.enough_samples_to_learn():
                 h = actor.replay()
                 logger.add_train_history(h)
+                mlf_logger.log_history(h)
                 actor.target_train()
         logger.game_records(dict(map=map_number, data=iterations))
+        mlf_logger.log_game(map_number, iterations)
         if actor.enough_samples_to_learn() and iterate_maps%4==0:
             logger.plot()
-        actor.dump_models(Path('./model_dumps'))
+        actor.dump_models(Path('assets/model_dumps'))
         logger.dump_log()
 
 
 if __name__ == "__main__":
-    data_path = './dump'
+    data_path = 'assets/dump'
+    #data_path = '/home/mwm/repositories/content/dump'  # home cluster
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)

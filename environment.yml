@@ -83,5 +83,5 @@ dependencies:
   - xz=5.2.4
   - zlib=1.2.11
   - zstd=1.4.3
-prefix: /home/mwm/anaconda3/envs/lartpc2D-rl
+prefix: /home/mwm/anaconda3/rl_environments/lartpc2D-rl
 

@@ -1,5 +1,9 @@
 import numpy as np
-from envs.cursors import Cursor2D
+from rl_environments.cursors import Cursor2D
+
+class Obsercation2D:
+    def to_dict(self):
+        return self.__dict__
 
 class GameObservation2D:
     def __init__(self, source_oservation, result_observation):

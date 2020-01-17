@@ -1,7 +1,9 @@
 import cv2
 from collections import OrderedDict
+from actors.observations import GameObservation2D
+from actors.actions import GameAction2D
 import numpy as np
-from envs import game
+from rl_environments import game
 import matplotlib.pyplot as plt
 
 class VisMap:
@@ -39,9 +41,9 @@ class Visualisation:
     @property
     def window_positions(self):
         win_poses = [
-            ('source', (25, 300)),
-            ('target', (450, 300)),
-            ('result', (900,300)),
+            ('source', (25, 350)),
+            ('target', (450, 350)),
+            ('result', (900,350)),
             ('source_cursor', (25, 100)),
             ('target_cursor', (450, 100)),
             ('result_cursor', (900, 100))
@@ -74,21 +76,58 @@ class Visualisation:
     def show_cursor(self, name, data):
         cv2.imshow(name, data)
 
-    def extract_cursor_data(self):
+    def draw_cursor_values(self):
         for name, data in self.heatmaps.items():
             cursor_data = self.game.cursor.get_range(data)
             name = '{}_cursor'.format(name)
             cv2.imshow(name,cursor_data)
-            cv2.moveWindow(name, *self.window_positions[name])
 
-
-    def update(self, wait=0):
-        self._update_maps()
-        self.extract_cursor_data()
-        self.add_cursor_to_maps()
+    def draw_heatmaps(self):
         for name, map in self.heatmaps.items():
             map = cv2.resize(map, (400,400))
             cv2.imshow(name, map)
 
-            cv2.moveWindow(name, *self.window_positions[name])
+    def move_windows(self):
+        for name, position in self.window_positions.items():
+            cv2.moveWindow(name, *position)
+
+    def draw(self):
+        self._update_maps()
+        self.draw_cursor_values()
+        self.add_cursor_to_maps()
+        self.draw_heatmaps()
+
+    def update(self, wait=0):
+        self.draw()
+        self.move_windows()
         cv2.waitKey(wait)
+
+class MixedModelVisualisation(Visualisation):
+
+    @property
+    def window_positions(self):
+        poses = super().window_positions
+        poses['network_input'] = (1200, 100)
+        poses['network_output'] = (1200, 250)
+        return poses
+
+    def obs_action(self, obs: GameObservation2D, action: GameAction2D):
+        self.observation = obs
+        self.action = action
+
+    def draw_network_io(self):
+        input = self._vis_source_map.cmap(self._vis_source_map.norm(self.observation.source_observation))
+        cv2.imshow('network_input', input)
+        fig, ax = plt.subplots(figsize=(5,5))
+        ax.bar([0,1,2],self.action.put_data[0][0])
+        fig.canvas.draw()
+        X = np.array(fig.canvas.renderer.buffer_rgba())
+        X = cv2.resize(X,(150,150))
+        cv2.imshow('network_output', X)
+
+    def draw(self):
+        super().draw()
+        self.draw_network_io()
+
+
+

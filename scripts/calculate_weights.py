@@ -5,7 +5,7 @@ import data
 
 if __name__ == "__main__":
     network_config = ClassicConfConfig()
-    data_generator = data.LartpcData.from_path('../dump')
+    data_generator = data.LartpcData.from_path('../assets/dump')
     Y = np.array([0.,0.,0.])
     for i,(x,y) in enumerate(conv_net_gdata_generator(data_generator, network_config)):
         if i==1000:

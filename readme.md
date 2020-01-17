@@ -206,4 +206,41 @@ Ok got that covered.
 I also need to change observation to state like observation, because new network desires target to be included in learning.
 
 #10.01.2020
-So both models work. The loss does not make sense really for the movement. But this is a good start.
+So both models work. 
+The loss does not make sense really for the movement. 
+But this is a good start.
+
+#13.01.2020
+Im figuring out the loss
+Right now it goes like this :
+
+ETA: 0s -
+loss: 1248.3007 -
+output_movement_loss: 1247.9445 -
+model_1_loss: 0.3562 -
+output_movement_mse: 1247.9445 -
+output_movement_mae: 17.5443 -
+output_movement_acc: 0.3229 -
+model_1_mse: 0.0928 -
+model_1_mae: 0.1909 -
+model_1_acc: 0.8333
+
+lets see how it was before
+It was like this:
+32/32 [==============================] - 0s 64us/step - loss: 12.2132 - mae: 1.2951 - acc: 0.3438
+
+Soo, I need to compare how rewards were given out. 
+I think this might be due lack of binarisation.
+
+#14.01.2020
+
+I think binarisation has fixed it.  Also i changed it from keras to tensorflow.keras.
+I need to check it tho, if it was binarised only from source or result as well.
+Yes result was binarised, tho it used one-hot encoding.
+
+#15.01.2020
+
+Im letting it run for a little bit at home, so I could pick potential errors along the way.
+
+#17.01.2020
+Next objective is to fix replay

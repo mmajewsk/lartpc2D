@@ -1,7 +1,7 @@
 import math
 
 import numpy as np
-from envs.dims import neighborhood2d, neighborhood3d, set_range2d, set_range3d, get_range2d, get_range3d
+from rl_environments.dims import neighborhood2d, neighborhood3d, set_range2d, set_range3d, get_range2d, get_range3d
 from abc import ABC, abstractmethod
 
 class BaseRegion:

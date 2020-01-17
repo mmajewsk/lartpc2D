@@ -1,11 +1,11 @@
 from datetime import datetime
-from keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint
 import numpy as np
 import data
-from keras.callbacks import TensorBoard
-from keras.utils import to_categorical
+from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.utils import to_categorical
 from actors.networks import categorisation_network
-from envs.dims import neighborhood2d
+from rl_environments.dims import neighborhood2d
 from common_configs import ClassicConfConfig
 
 
@@ -101,7 +101,7 @@ if __name__=="__main__":
     logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = TensorBoard(log_dir=logdir)
     model = categorisation_network(network_config=network_config)
-    mc = ModelCheckpoint('../model_dumps/categorisation/model{epoch:08d}.h5', period=30)
+    mc = ModelCheckpoint('../assets/model_dumps/categorisation/model{epoch:08d}.h5', period=30)
     model.fit_generator(
         batch_generator(train_data, network_config),
         steps_per_epoch=200,

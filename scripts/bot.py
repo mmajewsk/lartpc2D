@@ -1,6 +1,6 @@
 from common_configs import GameConfig
 import data
-from envs.game import Environment2D,Game2D
+from rl_environments.game import Environment2D,Game2D
 from actors.actions import Action2DFactory
 from actors.observations import Observation2DFactory
 from viz import Visualisation

@@ -5,7 +5,7 @@ from actors.actions import Action2DFactory, GameAction2D, ModelAction2D
 from actors.networks import load_model
 from actors.states import GameVisibleState2D, ModelVisibleState2D, VisibleState2DFactory
 from actors.observations import ModelObservation2D, GameObservation2D, Observation2DFactory
-from envs.dims import neighborhood2d
+from rl_environments.dims import neighborhood2d
 
 
 class BaseMemoryBuffer:

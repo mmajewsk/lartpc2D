@@ -1,7 +1,7 @@
 from actors.actions import GameAction2D
 from actors.observations import GameObservation2D
 from actors.states import GameVisibleState2D
-from envs.cursors import Cursor2D
+from rl_environments.cursors import Cursor2D
 import numpy as np
 import pandas as pd
 from abc import abstractmethod, ABC

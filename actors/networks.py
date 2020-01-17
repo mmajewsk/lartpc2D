@@ -1,8 +1,9 @@
-from keras import Input, Model
-from keras.models import Model, load_model
-from keras.layers import Input, Concatenate, Dense, Activation, Dropout, BatchNormalization
-from keras.optimizers import Adam, SGD
-from keras.models import load_model
+import tensorflow as tf
+from tensorflow.keras import Input, Model
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.layers import Input, Concatenate, Dense, Activation, Dropout, BatchNormalization
+from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.models import load_model
 from common_configs import ClassicConfConfig
 
 
@@ -17,6 +18,14 @@ def create_movement_output(previous_layer, possible_moves):
     return output
 
 
+def fun(x):
+    x = tf.cast(x > 0.0, tf.int32)
+    x = tf.cast(x, tf.float32)
+    return x
+
+#def fun2(x):
+#    comparison = tf.not_equal(x, tf.constant(0.0, dtype=tf.float32))
+#    conditional_assignment_op = x.assign(tf.where(comparison, tf._like(x), a))
 # only movement network
 
 class ParameterBasedNetworks:
@@ -28,8 +37,11 @@ class ParameterBasedNetworks:
     def movement_network(self, source_in, result_in):
         dense_size = self.other_params['dense_size']
         dropout_rate = self.other_params['dropout_rate']
-        all_input = Concatenate()([source_in, result_in])
-        # @TODO result in is currently binarised, need to do in network
+        source_clip =  tf.keras.layers.Lambda(fun)(source_in)
+        # @TODO result_clip currently is binarised like this [[[0.0,0.3,0.3]]] -> [[[0.0,1,1]]], but should
+        # @TODO be like -> [[[1,1,1]]]
+        result_clip =  tf.keras.layers.Lambda(fun)(result_in)
+        all_input = Concatenate()([source_clip, result_clip])
         l = Dense(dense_size)(all_input)
         l = Activation("relu")(l)
         l = Dropout(rate=dropout_rate)(l)
@@ -62,6 +74,7 @@ class ParameterBasedNetworks:
         source_in, result_in = create_movement_inputs(**self.input_parameters)
         output_movement = self.movement_network(source_in, result_in)
         output_category = category_network(source_in)
+        output_category.trainable = False
         model = Model(
             inputs=[source_in, result_in],
             outputs=[output_movement, output_category],
