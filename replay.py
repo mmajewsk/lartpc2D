@@ -47,6 +47,6 @@ def simple_replay(data_path):
                     break
 
 if __name__ == "__main__":
-    data_path = '/home/mwm/repositories/lartpc/lartpc2D-rl/dump'
-    data_path = '/home/mwm/repositories/lartpc/lartpc_notebooks/Blog/content/dump'
+    data_path = '/home/mwm/repositories/lartpc/lartpc2D-rl/assets/dump'
+    #data_path = '/home/mwm/repositories/lartpc/lartpc_notebooks/Blog/content/dump'
     simple_replay(data_path)

@@ -130,10 +130,13 @@ def simple_learn(data_path):
             p.plot()
         actor.dump_models(Path('./model_dumps'))
         p.dump_log()
+        if len(p.train_hist) == 5000:
+            break
 
 
 if __name__ == "__main__":
     data_path = '/home/mwm/repositories/lartpc/lartpc2D-rl/dump'
     data_path = '/home/mwm/repositories/lartpc/lartpc_notebooks/Blog/content/dump'
+    data_path = '/home/mwm/repositories/content/dump'  # home cluster
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)
