@@ -244,3 +244,12 @@ Im letting it run for a little bit at home, so I could pick potential errors alo
 
 #17.01.2020
 Next objective is to fix replay
+Next goal: train only movement.
+
+#22.01.2020 
+went back and recorded some sane models under 20200122113845_a54955582feaa6d15fc91e508e246b8b6c07fa77 
+
+#23.01.2020 
+Problem wit speed was solved.
+Now the plotting from my own logging works as expected, but i am not sure about the mlflow one.
+Im commiting this now.

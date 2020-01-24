@@ -1,7 +1,7 @@
 from dataclasses import  dataclass
 
 @dataclass
-class GameConfig:
+class TrainerConfig:
     max_step_number : int = 12
     batch_size : int = 128
     maps_iterations: int = 4000
@@ -12,6 +12,11 @@ class GameConfig:
     epsilon_decay: float = 0.9987
     epsilon_min: float = 0.5
     conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
+    network_type='movement'
+    #categorisation_mode = 'network'
+    #decision_mode = 'network'
+    decision_mode = 'network'
+    categorisation_mode = 'random'
 
 
 @dataclass

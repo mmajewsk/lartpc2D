@@ -6,9 +6,9 @@ import numpy as np
 from actors.models import Actor
 from actors.actions import Action2DFactory
 from rl_environments.dims import neighborhood2d
-from actors.networks import ParameterBasedNetworks, load_model
+from actors.networks import ParameterBasedNetworks, load_model, create_network_factory
 #from viz import  Visualisation
-from common_configs import GameConfig
+from common_configs import TrainerConfig
 from logger import Logger, MLFlowLogger
 
 
@@ -51,7 +51,7 @@ def create_model_params(action_factory, observation_factory):
     )
     return model_params
 
-def prepare_game(data_path, config: GameConfig, network_type='empty'):
+def prepare_game(data_path, config: TrainerConfig, network_type='empty'):
 
     data_generator = data.LartpcData.from_path(data_path)
     result_dimensions = 3
@@ -68,34 +68,24 @@ def prepare_game(data_path, config: GameConfig, network_type='empty'):
         min=config.epsilon_min
     )
     model_params = create_model_params(action_factory, observation_factory)
-
-    if network_type=='empty':
-        nm_factory = lambda : None
-    else:
-        network_builder = ParameterBasedNetworks(**model_params)
-        if network_type=='movement':
-            nm_factory = network_builder.movement_network_compiled
-        elif network_type=='read_conv':
-            category_network = load_model(config.conv_model_path)
-            nm_factory =  lambda : network_builder.movement_and_category(category_network)
-        else:
-            raise ValueError
+    network_builder = ParameterBasedNetworks(**model_params, action_factory=action_factory, observation_factory=observation_factory)
+    network_factory = create_network_factory(network_type, network_builder, config)
     actor =  Actor(
         action_factory,
         observation_factory,
         epsilon_kwrgs=epsilon_kwrgs,
-        network_model_factory=nm_factory,
+        network_model_factory=network_factory,
         batch_size= config.batch_size,
         trace_length= config.trace_length,
         gamma = config.gamma,
-        categorisation_mode='network',
-        decision_mode='network',
+        categorisation_mode=config.categorisation_mode,
+        decision_mode=config.decision_mode,
     )
     return game, actor, data_generator
 
 def simple_learn(data_path):
-    config = GameConfig()
-    game, actor, data_generator = prepare_game(data_path, config, network_type='read_conv')
+    config = TrainerConfig()
+    game, actor, data_generator = prepare_game(data_path, config, network_type=config.network_type)
     logger = Logger()
     mlf_logger = MLFlowLogger()
     mlf_logger.log_config(config)

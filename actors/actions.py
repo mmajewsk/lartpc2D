@@ -94,7 +94,7 @@ class Action2DFactory:
         return ModelAction2D(flat_movement, flat_data)
 
     def randomise_category(self, action: ModelAction2D) -> ModelAction2D:
-        assert action.movement_decision.shape==(1,self.movement_size), "Incorrect shape, expected {} got {}".format((1,self.movement_size), movement.shape)
+        assert action.movement_decision.shape==(1,1,self.movement_size), "Incorrect shape, expected {} got {}".format((1,self.movement_size), action.movement_decision.shape)
         dummy_model = self.create_random_action()
         action.put_decision = dummy_model.put_decision
         return dummy_model

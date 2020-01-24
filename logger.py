@@ -7,7 +7,7 @@ import datetime as dt
 from matplotlib import pyplot as plt
 import os
 import binascii
-from common_configs import ClassicConfConfig, GameConfig
+from common_configs import ClassicConfConfig, TrainerConfig
 import dataclasses
 from pathlib import Path
 
@@ -44,7 +44,7 @@ class MLFlowLogger:
     def start(self):
         mlflow.start_run()
 
-    def log_config(self, config: GameConfig):
+    def log_config(self, config: TrainerConfig):
         mlflow.log_params(dataclasses.asdict(config))
 
     def log_history(self, hist: tf.keras.callbacks.History):
