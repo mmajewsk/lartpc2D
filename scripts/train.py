@@ -12,28 +12,6 @@ from common_configs import TrainerConfig
 from logger import Logger, MLFlowLogger
 
 
-def ftest_draw_random_cursor(data_path):
-    data_generator = data.LartpcData.from_path(data_path)
-    env = Environment2D()
-    env.set_map(*data_generator[3])
-    game = Game2D(env)
-    game.cursor.current_center = np.array([60,120])
-    vis = Visualisation(game)
-    vis.update()
-    possible_choices = neighborhood2d(3)
-    for i in range(400):
-        choice = np.random.randint(0,len(possible_choices))
-        vector = possible_choices[choice]
-        print(vector)
-        prev = game.cursor.current_center
-
-        game.cursor.current_center = game.cursor.current_center + vector
-        if game.cursor.get_range(game.env.target_map)[1,1] == 0:
-               game.cursor.current_center = prev
-        else:
-            game.cursor.set_range(game.env.result_map, game.cursor.get_range(game.env.target_map))
-        vis.update(100)
-
 
 def create_model_params(action_factory, observation_factory):
     input_parameters = dict(
@@ -52,14 +30,11 @@ def create_model_params(action_factory, observation_factory):
     return model_params
 
 def prepare_game(data_path, config: TrainerConfig, network_type='empty'):
-
     data_generator = data.LartpcData.from_path(data_path)
     result_dimensions = 3
     env = Environment2D(result_dimensions=result_dimensions)
     env.set_map(*data_generator[3])
     game = Game2D(env, max_step_number=config.max_step_number)
-    #vis = Visualisation(game)
-    #vis.update()
     action_factory = Action2DFactory(game.cursor.copy(), categories=result_dimensions)
     observation_factory = Observation2DFactory(game.cursor.copy(), categories=result_dimensions)
     epsilon_kwrgs = dict(
@@ -117,6 +92,7 @@ def simple_learn(data_path):
             logger.plot()
         actor.dump_models(Path('assets/model_dumps'))
         logger.dump_log()
+        mlf_logger.log_model(actor)
 
 
 if __name__ == "__main__":

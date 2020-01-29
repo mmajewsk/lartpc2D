@@ -206,8 +206,9 @@ class Actor(BaseMemoryActor, BaseActor):
         self._choose_action_creation()
 
     def load_models(self, path: Path):
-        self.model = load_model(path/'model.h5')
-        self.target_model = load_model(path/'target_model.h5')
+        import tensorflow as tf
+        self.model = load_model(path/'model.h5', custom_objects={'tf':tf})
+        self.target_model = load_model(path/'target_model.h5', custom_objects={'tf':tf})
 
 
     def create_action(self, state: GameObservation2D, use_epsilon=True) -> ModelAction2D:

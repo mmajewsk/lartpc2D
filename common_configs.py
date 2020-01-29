@@ -12,6 +12,9 @@ class TrainerConfig:
     epsilon_decay: float = 0.9987
     epsilon_min: float = 0.5
     conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
+    movement_model_path: str = "assets/model_dumps/target_model.h5"
+    conv_trainable = False
+    mov_trainable = False
     network_type='movement'
     #categorisation_mode = 'network'
     #decision_mode = 'network'

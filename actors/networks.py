@@ -65,8 +65,6 @@ class ParameterBasedNetworks:
         dropout_rate = self.other_params['dropout_rate']
         #source_clip =  tf.keras.layers.Lambda(lambda x : tf.cast(x>0.0,tf.float32))(source_in)
         source_clip =  Lambda(fun)(source_in)
-        # @TODO result_clip currently is binarised like this [[[0.0,0.3,0.3]]] -> [[[0.0,1,1]]], but should
-        # @TODO be like -> [[[1,1,1]]]
         fun_cat = fun_cat_produce(self.observation_factory.categories, self.input_parameters['result_feature_size'])
         result_clip =  Lambda(fun_cat, output_shape=produce_shaper(self.observation_factory.categories))(result_in)
         all_input = Concatenate(axis=2)([source_clip, result_clip])
@@ -116,11 +114,12 @@ class ParameterBasedNetworks:
         return model
 
 
-    def combine_movement_category(self, movement_network, category_network):
+    def combine_movement_category(self, movement_network,  category_network, mov_trainable=True, cat_trainable=True):
         source_in, result_in = create_movement_inputs(**self.input_parameters)
         output_movement = movement_network(source_in, result_in)
         output_category = category_network(source_in)
-        output_category.trainable = False
+        output_category.trainable = cat_trainable
+        output_movement.trainable = mov_trainable
         model = Model(
             inputs=[source_in, result_in],
             outputs=[output_movement, output_category],
@@ -177,6 +176,15 @@ def create_network_factory(network_type, network_builder: ParameterBasedNetworks
         category_network = load_model(config.conv_model_path)
         movement_network = network_builder.movement_network
         nm_factory =  lambda : network_builder.combine_movement_category(movement_network, category_network)
+    elif network_type=='read_both':
+        category_network = load_model(config.conv_model_path)
+        movement_network = load_model(config.movement_model_path)
+        nm_factory = lambda : network_builder.combine_movement_category(
+            movement_network,
+            category_network,
+            cat_trainable=config.conv_trainable,
+            mov_trainable=config.mov_trainable
+        )
     else:
         raise ValueError
     return nm_factory

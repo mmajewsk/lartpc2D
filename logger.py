@@ -10,6 +10,7 @@ import binascii
 from common_configs import ClassicConfConfig, TrainerConfig
 import dataclasses
 from pathlib import Path
+import mlflow.keras
 
 class Logger:
     def __init__(self):
@@ -42,6 +43,7 @@ class Logger:
 
 class MLFlowLogger:
     def start(self):
+        mlflow.set_tracking_uri('file:///home/mwm/repositories/lartpc_remote_pycharm')
         mlflow.start_run()
 
     def log_config(self, config: TrainerConfig):

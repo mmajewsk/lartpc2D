@@ -253,3 +253,11 @@ went back and recorded some sane models under 20200122113845_a54955582feaa6d15fc
 Problem wit speed was solved.
 Now the plotting from my own logging works as expected, but i am not sure about the mlflow one.
 Im commiting this now.
+So the old way was the right way. (meaning [[0.1,0.0,32]...[0.0,0.0,0.0]] - > [1,0,1]...[0,0,0] not: --> [1...0])
+Actually, this is true, but only for the source, the result was the reducing way.
+
+So new experimentation begins, with mlflow. 
+
+#29.01.2020
+After some experimentation, I am trying to use both and load them from disk.
+Need to remember that tau learning may affect future results with categorisational part.
