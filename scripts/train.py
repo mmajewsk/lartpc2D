@@ -96,7 +96,7 @@ def simple_learn(data_path):
 
 
 if __name__ == "__main__":
-    data_path = 'assets/dump'
-    #data_path = '/home/mwm/repositories/content/dump'  # home cluster
+    #data_path = 'assets/dump'
+    data_path = '/home/mwm/repositories/content/dump'  # home cluster
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)

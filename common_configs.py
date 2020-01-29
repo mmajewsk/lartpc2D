@@ -13,13 +13,13 @@ class TrainerConfig:
     epsilon_min: float = 0.5
     conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
     movement_model_path: str = "assets/model_dumps/target_model.h5"
-    conv_trainable = False
-    mov_trainable = True
-    network_type='read_conv'
+    conv_trainable: bool = False
+    mov_trainable: bool= True
+    network_type: str ='read_conv'
     #categorisation_mode = 'network'
     #decision_mode = 'network'
-    decision_mode = 'network'
-    categorisation_mode = 'random'
+    decision_mode: str= 'network'
+    categorisation_mode: str = 'random'
 
 
 @dataclass

@@ -261,3 +261,4 @@ So new experimentation begins, with mlflow.
 #29.01.2020
 After some experimentation, I am trying to use both and load them from disk.
 Need to remember that tau learning may affect future results with categorisational part.
+todays model up to 2020-01-29 18:25:09 are trained on wrong dataset

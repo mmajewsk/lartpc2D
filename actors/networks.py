@@ -1,10 +1,11 @@
 import tensorflow as tf
 from keras import Input, Model
 from keras.models import Model, load_model
-from keras.layers import Input, Concatenate, Dense, Activation, Dropout, BatchNormalization, Lambda
+from keras.layers import Input, Concatenate, Dense, Activation
+from keras.layers import Dropout, BatchNormalization, Lambda, Layer, Flatten
 from keras.optimizers import Adam, SGD
 from keras.models import load_model
-from common_configs import ClassicConfConfig
+from common_configs import ClassicConfConfig, TrainerConfig
 
 
 def create_movement_inputs(source_feature_size, result_feature_size):
@@ -134,6 +135,41 @@ class ParameterBasedNetworks:
         model.compile(optimizer=adam, **compile_kwrgs)
         return model
 
+    def add_extra(self, output_mov: Layer, output_cat: Layer):
+        dropout_rate=0.2
+        dense_size=64
+        result_output_size = ClassicConfConfig.result_output
+        l1 = Flatten()(output_mov)
+        l2 = Flatten()(output_cat)
+        l = Concatenate()([l1, l2])
+        l = Dense(dense_size)(l)
+        l = Activation("relu")(l)
+        l = Dropout(rate=dropout_rate)(l)
+        l = Dense(dense_size)(l)
+        l = Activation("relu")(l)
+        l = Dropout(rate=dropout_rate)(l)
+        l = Dense(dense_size)(l)
+        l = Activation("relu")(l)
+        l = Dropout(rate=dropout_rate)(l)
+        mov_extra = create_movement_output(l, self.other_params )
+        o2 = Dense(result_output_size)(l)
+        cat_extra = Activation("Sigmoid")(o2)
+        return mov_extra, cat_extra
+
+
+
+
+    def extra_layers(self, movement_network,  category_network, mov_trainable=True, cat_trainable=True):
+        source_in, result_in = create_movement_inputs(**self.input_parameters)
+        output_movement = movement_network(source_in, result_in)
+        output_category = category_network(source_in)
+        output_category.trainable = cat_trainable
+        output_movement.trainable = mov_trainable
+        extra_movement, extra_category = self.add_extra(output_movement, output_category)
+        model = Model(
+            inputs=[source_in, result_in],
+            outputs=[extra_movement, extra_category]
+        )
 
 def categorisation_network(network_config : ClassicConfConfig):
     source_feature_size = network_config.source_feature_size
@@ -165,7 +201,7 @@ def categorisation_network(network_config : ClassicConfConfig):
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['mse','acc'])
     return model
 
-def create_network_factory(network_type, network_builder: ParameterBasedNetworks, config ):
+def create_network_factory(network_type, network_builder: ParameterBasedNetworks, config: TrainerConfig ):
     if network_type=='empty':
         nm_factory = lambda : None
     elif network_type=='movement':
@@ -185,6 +221,15 @@ def create_network_factory(network_type, network_builder: ParameterBasedNetworks
         category_network = load_model(config.conv_model_path)
         movement_network = load_model(config.movement_model_path)
         nm_factory = lambda : network_builder.combine_movement_category(
+            movement_network,
+            category_network,
+            cat_trainable=config.conv_trainable,
+            mov_trainable=config.mov_trainable
+        )
+    elif network_type=='extra_layers':
+        category_network = load_model(config.conv_model_path)
+        movement_network = load_model(config.movement_model_path)
+        nm_factory = lambda: network_builder.extra_layers(
             movement_network,
             category_network,
             cat_trainable=config.conv_trainable,
