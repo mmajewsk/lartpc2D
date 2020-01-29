@@ -14,8 +14,8 @@ class TrainerConfig:
     conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
     movement_model_path: str = "assets/model_dumps/target_model.h5"
     conv_trainable = False
-    mov_trainable = False
-    network_type='movement'
+    mov_trainable = True
+    network_type='read_conv'
     #categorisation_mode = 'network'
     #decision_mode = 'network'
     decision_mode = 'network'

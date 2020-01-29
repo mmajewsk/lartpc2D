@@ -175,7 +175,12 @@ def create_network_factory(network_type, network_builder: ParameterBasedNetworks
     elif network_type=='read_conv':
         category_network = load_model(config.conv_model_path)
         movement_network = network_builder.movement_network
-        nm_factory =  lambda : network_builder.combine_movement_category(movement_network, category_network)
+        nm_factory =  lambda : network_builder.combine_movement_category(
+            movement_network,
+            category_network,
+            cat_trainable = config.conv_trainable,
+            mov_trainable = config.mov_trainable
+        )
     elif network_type=='read_both':
         category_network = load_model(config.conv_model_path)
         movement_network = load_model(config.movement_model_path)
