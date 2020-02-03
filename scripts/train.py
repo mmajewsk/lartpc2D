@@ -1,12 +1,11 @@
 from rl_environments.game import Environment2D, Game2D
 from pathlib import  Path
-from actors.observations import Observation2DFactory
-import data
+from rl_environments.actors.observations import Observation2DFactory
+from rl_environments import data
 import numpy as np
 from actors.models import Actor
-from actors.actions import Action2DFactory
-from rl_environments.dims import neighborhood2d
-from actors.networks import ParameterBasedNetworks, load_model, create_network_factory
+from rl_environments.actors.actions import Action2DFactory
+from actors.networks import ParameterBasedNetworks, create_network_factory
 #from viz import  Visualisation
 from common_configs import TrainerConfig
 from logger import Logger, MLFlowLogger

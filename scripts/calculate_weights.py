@@ -1,7 +1,7 @@
 from scripts.classic_conv import conv_net_gdata_generator
 from common_configs import ClassicConfConfig
 import numpy as np
-import data
+from rl_environments import data
 
 if __name__ == "__main__":
     network_config = ClassicConfConfig()
