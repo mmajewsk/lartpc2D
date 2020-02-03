@@ -1,0 +1,3 @@
+[submodule "rl_environments"]
+	path = rl_environments
+	url = https://github.com/mmajewsk/lartpc-game
