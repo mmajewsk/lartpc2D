@@ -7,6 +7,89 @@ from lartpc_game.actors.states import GameVisibleState2D
 from lartpc_game.actors.observations import GameObservation2D, Observation2DFactory
 
 
+
+class BaseMemoryBuffer:
+    def add(self, experience):
+        """
+
+        :param experience:
+        looks like this:
+        experience = [
+            (cur_state, action, reward, new_state, done),
+            (cur_state, action, reward, new_state, done),
+            ...
+        ]
+        :return:
+        """
+        pass
+
+    def sample(self, batch_size: int, trace_length:int):
+        pass
+
+class ExperienceBuffer(BaseMemoryBuffer):
+    def __init__(self, buffer_size = 1000):
+        self.buffer = []
+        self.buffer_size = buffer_size
+
+    def add(self, experience : list):
+        # if the buffer overflows over the size,
+        # delete old from the beginning
+
+        buffer_overflow = (len(self.buffer) + 1 >= self.buffer_size)
+        if buffer_overflow:
+            old_to_overwrite = (1+len(self.buffer))-self.buffer_size
+            self.buffer[0:old_to_overwrite] = []
+        self.buffer.append(experience)
+
+    def sample(self,batch_size: int, trace_length: int) -> np.ndarray:
+        """
+        samples buffer wise:
+        self.buffer = [ experience, experience, experience, ...]
+                           True,       False,      True
+        and picks list of size of batch_size
+
+        then picks the episode trace
+
+        like this, if trace_length == 3
+        experience = [
+            step1, # False
+            step2, # False
+            step3, # True
+            step4, # True
+            step5, # True
+            step6  # False
+            ...,   # False
+            stepn  # False
+        ]
+
+        so in the end
+        result : np.ndarray = [
+            [step3, step4, step5],
+            ....,
+            [stepX, stepX+1, stepX+2]
+        ]
+        ande len(result) == batch_size
+        """
+        sampled_episodes = random.sample(self.buffer,batch_size)
+        sampledTraces = []
+        for episode in sampled_episodes:
+            point = np.random.randint(0,len(episode)+1-trace_length)
+            sampledTraces.append(episode[point:point+trace_length])
+        sampledTraces = np.array(sampledTraces)
+        return sampledTraces
+
+class SquashedTraceBuffer(ExperienceBuffer):
+    def sample(self,batch_size: int, trace_length: int) -> np.ndarray:
+        samples = ExperienceBuffer.sample(self, batch_size, trace_length)
+        return samples.reshape([samples.shape[0]*samples.shape[1], samples.shape[2]])
+
+class BaseMemoryActor:
+    def __init__(self):
+        self.memory =BaseMemoryBuffer()
+
+    def create_action(self, state):
+        pass
+
 class Epsilon:
     def __init__(self, value=1.0, decay=0.995, min=0.01):
         # epsilon is a decaying value used for exploration
@@ -20,6 +103,77 @@ class Epsilon:
         self.value *= self.decay
         self.value = max(self.min, self.value)
         return np.random.random() < self.value
+
+
+class BaseActor:
+    def __init__(
+            self,
+            action_factory: Action2DFactory,
+            observation_factory: Observation2DFactory,
+         ):
+        self.action_factory = action_factory
+        self.observation_factory = observation_factory
+        self.state_factory = VisibleState2DFactory(observation_factory)
+
+
+    def create_action(self, state: GameObservation2D):
+        pass
+
+
+class BotActor(BaseActor):
+    def __init__(
+            self,
+            action_factory: Action2DFactory,
+            observation_factory: Observation2DFactory
+        ):
+        BaseActor.__init__(self, action_factory, observation_factory)
+        input_size = self.observation_factory.cursor.region_source_input.window_size
+        assert input_size==5
+        large_neighborhood = neighborhood2d(input_size)
+        small_neighborhood = neighborhood2d(input_size-2)
+        large_neighborhood= large_neighborhood[~np.all(large_neighborhood == 0, axis=1)]
+        small_neighborhood= small_neighborhood[~np.all(small_neighborhood == 0, axis=1)]
+
+        self.lu_small_nbhood = 2 + small_neighborhood
+        self.lu_large_nbhood = 2 + large_neighborhood
+        empty = np.zeros((input_size,input_size))
+        smlcl = self.lu_small_nbhood.T
+        empty[smlcl[0], smlcl[1]] = True
+        self.lu_small_nbhood_mask = empty.astype(np.bool)
+        empty2 = np.zeros((input_size,input_size))
+        lrgcl = self.lu_large_nbhood.T
+        empty2[lrgcl[0], lrgcl[1]] = True
+        empty2[self.lu_small_nbhood_mask] = False
+        self.lu_large_nbhood_mask = empty2.astype(np.bool)
+
+
+    def create_action(self, state: GameObservation2D) -> ModelAction2D:
+        """
+         Ok so:
+         1. check nearest neighbours, if have value, and untoched, move at random. If not possible:
+         2. check outer ring, the same procedure
+        :param state:
+        :return:
+        """
+
+        smbhd_source = state.source_observation[self.lu_small_nbhood_mask]
+        smbhd_result = state.result_observation[self.lu_small_nbhood_mask]
+        assert smbhd_result.shape[-1] == 3
+        smbhd_result = np.argmax(smbhd_result, axis=1)
+        go = (smbhd_result == 0) & (smbhd_source != 0)
+        go_indeces = np.nonzero(go[0])
+        if go_indeces[0].size == 0:
+            desperate_move = np.nonzero(smbhd_source)
+            if desperate_move[0].size==0:
+                go_indeces = np.array(range(8))
+            else:
+                go_indeces = desperate_move
+        choice = np.random.choice(go_indeces[1],1)[0]
+        result = np.zeros((1,8))
+        result[0,choice] = 1.0
+        action = self.action_factory.create_random_action()
+        action.movement_decision = result
+        return action
 
 
 class Actor(BaseMemoryActor, BaseActor):
