@@ -1,10 +1,10 @@
-from rl_environments.game import Environment2D, Game2D
+from lartpc_game.game import Environment2D, Game2D
 from pathlib import  Path
-from rl_environments.actors.observations import Observation2DFactory
-from rl_environments import data
+from lartpc_game.actors.observations import Observation2DFactory
+from lartpc_game import data
 import numpy as np
 from actors.models import Actor
-from rl_environments.actors.actions import Action2DFactory
+from lartpc_game.actors.actions import Action2DFactory
 from actors.networks import ParameterBasedNetworks, create_network_factory
 #from viz import  Visualisation
 from common_configs import TrainerConfig

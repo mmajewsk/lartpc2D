@@ -1,6 +1,6 @@
 from pathlib import  Path
 import numpy as np
-from rl_environments.viz import MixedModelVisualisation
+from lartpc_game.viz import MixedModelVisualisation
 from scripts.train import prepare_game
 from common_configs import TrainerConfig
 

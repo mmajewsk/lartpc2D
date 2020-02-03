@@ -1,10 +1,10 @@
 import numpy as np
 from pathlib import  Path
-from rl_environments.actors.actions import Action2DFactory, GameAction2D, ModelAction2D
+from lartpc_game.actors.actions import Action2DFactory, GameAction2D, ModelAction2D
 from actors.networks import load_model
-from rl_environments.actors.base_models import BaseActor, BaseMemoryActor, SquashedTraceBuffer
-from rl_environments.actors.states import GameVisibleState2D
-from rl_environments.actors.observations import GameObservation2D, Observation2DFactory
+from lartpc_game.actors.base_models import BaseActor, BaseMemoryActor, SquashedTraceBuffer
+from lartpc_game.actors.states import GameVisibleState2D
+from lartpc_game.actors.observations import GameObservation2D, Observation2DFactory
 
 
 class Epsilon:

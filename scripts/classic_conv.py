@@ -1,11 +1,11 @@
 from datetime import datetime
 from tensorflow.keras.callbacks import ModelCheckpoint
 import numpy as np
-from rl_environments import data
+from lartpc_game import data
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.utils import to_categorical
 from actors.networks import categorisation_network
-from rl_environments.game.dims import neighborhood2d
+from lartpc_game.game.dims import neighborhood2d
 from common_configs import ClassicConfConfig
 
 
