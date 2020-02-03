@@ -19,7 +19,7 @@ class TrainerConfig:
     #categorisation_mode = 'network'
     #decision_mode = 'network'
     decision_mode: str= 'network'
-    categorisation_mode: str = 'random'
+    categorisation_mode: str = 'network'
 
 
 @dataclass

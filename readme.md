@@ -262,3 +262,9 @@ So new experimentation begins, with mlflow.
 After some experimentation, I am trying to use both and load them from disk.
 Need to remember that tau learning may affect future results with categorisational part.
 todays model up to 2020-01-29 18:25:09 are trained on wrong dataset
+
+#30.01.2020
+I had the wrong categorisation mode working.
+
+#03.02.2020
+So it does not learn well, lest run it again after trail aaf733
