@@ -271,3 +271,5 @@ So it does not learn well, lest run it again after trail aaf733
 Im splitting this project into two repos.
 You might need to do File -> Settings -> Project -> Project structure -> Add content root
 in pychar or use sys.path.append to use this dependancy
+
+Thats it for today but need to remove and add submodule again.
