@@ -1,11 +1,11 @@
-from lartpc_game.game import Environment2D, Game2D
-from pathlib import  Path
+from lartpc_game.game.game import Environment2D, Game2D
+from pathlib import Path
 from lartpc_game.actors.observations import Observation2DFactory
 from lartpc_game import data
 import numpy as np
-from actors.models import Actor
+from models import Actor
 from lartpc_game.actors.actions import Action2DFactory
-from actors.networks import ParameterBasedNetworks, create_network_factory
+from networks import ParameterBasedNetworks, create_network_factory
 #from viz import  Visualisation
 from common_configs import TrainerConfig
 from logger import Logger, MLFlowLogger
@@ -95,7 +95,7 @@ def simple_learn(data_path):
 
 
 if __name__ == "__main__":
-    #data_path = 'assets/dump'
-    data_path = '/home/mwm/repositories/content/dump'  # home cluster
+    data_path = 'assets/dump'
+    #data_path = '/home/mwm/repositories/content/dump'  # home cluster
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)

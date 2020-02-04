@@ -1,11 +1,12 @@
 import numpy as np
 from pathlib import  Path
 from lartpc_game.actors.actions import Action2DFactory, GameAction2D, ModelAction2D
-from actors.networks import load_model
+from networks import load_model
 from lartpc_game.actors.base_models import BaseActor, BaseMemoryActor, SquashedTraceBuffer
-from lartpc_game.actors.states import GameVisibleState2D
+from lartpc_game.actors.states import GameVisibleState2D, VisibleState2DFactory
 from lartpc_game.actors.observations import GameObservation2D, Observation2DFactory
-
+from lartpc_game.game.dims import neighborhood2d
+import random
 
 
 class BaseMemoryBuffer:

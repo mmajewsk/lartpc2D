@@ -273,3 +273,7 @@ You might need to do File -> Settings -> Project -> Project structure -> Add con
 in pychar or use sys.path.append to use this dependancy
 
 Thats it for today but need to remove and add submodule again.
+
+#04.02.2020
+
+Adding 
