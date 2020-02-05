@@ -276,4 +276,15 @@ Thats it for today but need to remove and add submodule again.
 
 #04.02.2020
 
-Adding 
+Fixing some things in lartpc_game.
+Now, I will attempt to read both networks at the same time.
+Ok, worked on docs on lartpc_game.
+I need more time to investigate what is going on with movement network, since they do not work as nice as they used to.
+
+#05.02.2020
+
+Trying this model;
+2020-02-03 13:41:49
+Saw it in replay, "not great, not terrible", its ok to go.
+There is unresolved issue of reading two models:
+(mov+cat) == model and (mov+cat) == target_model --> in actor

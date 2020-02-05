@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import  Path
 from lartpc_game.actors.actions import Action2DFactory, GameAction2D, ModelAction2D
-from networks import load_model
+from networks import load_model, ParameterBasedNetworks, create_network_factory
 from lartpc_game.actors.base_models import BaseActor, BaseMemoryActor, SquashedTraceBuffer
 from lartpc_game.actors.states import GameVisibleState2D, VisibleState2DFactory
 from lartpc_game.actors.observations import GameObservation2D, Observation2DFactory
@@ -206,11 +206,15 @@ class Actor(BaseMemoryActor, BaseActor):
         self.categorisation_mode = categorisation_mode
         self._choose_action_creation()
 
-    def load_models(self, path: Path):
-        import tensorflow as tf
-        self.model = load_model(path/'model.h5', custom_objects={'tf':tf})
-        self.target_model = load_model(path/'target_model.h5', custom_objects={'tf':tf})
+    def load_models_folder(self, path: Path):
+        model_path = path/'model.h5'
+        target_path = path/'target_model.h5'
+        self.load_models(model_path, target_path)
 
+    def load_models(self, path: Path, target_path: Path):
+        import tensorflow as tf
+        self.model = load_model(path, custom_objects={'tf':tf})
+        self.target_model = load_model(target_path, custom_objects={'tf':tf})
 
     def create_action(self, state: GameObservation2D, use_epsilon=True) -> ModelAction2D:
         if use_epsilon:
@@ -306,3 +310,48 @@ class Actor(BaseMemoryActor, BaseActor):
     def dump_models(self, path: Path):
         self.model.save(path/'model.h5')
         self.target_model.save(path/'target_model.h5')
+
+def create_model_params(action_factory, observation_factory):
+    input_parameters = dict(
+        source_feature_size =observation_factory.cursor.region_source_input.basic_block_size, # size of input window
+        result_feature_size = np.prod(observation_factory.result_shape), # this is a space where we
+    )
+    output_parameters= dict(
+        possible_moves = action_factory.movement_size, #where it can move
+    )
+    other_params = dict(dense_size=32, dropout_rate=0.2)
+    model_params = dict(
+        input_parameters=input_parameters,
+        output_parameters = output_parameters,
+        other_params = other_params,
+    )
+    return model_params
+
+class ActorFactory:
+    def __init__(self, action_factory, observation_factory, config):
+        self.action_factory = action_factory
+        self.observation_factory = observation_factory
+        self.config = config
+
+    def produce_actor(self, network_type) -> Actor:
+        model_params = create_model_params(self.action_factory, self.observation_factory)
+        network_builder = ParameterBasedNetworks(**model_params, action_factory=self.action_factory,
+                                                 observation_factory=self.observation_factory)
+
+        network_factory = create_network_factory(network_type, network_builder, self.config)
+        epsilon_kwrgs = dict(
+            value=self.config.epsilon_initial_value,
+            decay=self.config.epsilon_decay,
+            min=self.config.epsilon_min
+        )
+        return  Actor(
+            self.action_factory,
+            self.observation_factory,
+            epsilon_kwrgs=epsilon_kwrgs,
+            network_model_factory=network_factory,
+            batch_size= self.config.batch_size,
+            trace_length= self.config.trace_length,
+            gamma = self.config.gamma,
+            categorisation_mode=self.config.categorisation_mode,
+            decision_mode=self.config.decision_mode,
+        )

@@ -12,14 +12,22 @@ class TrainerConfig:
     epsilon_decay: float = 0.9987
     epsilon_min: float = 0.5
     conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
-    movement_model_path: str = "assets/model_dumps/target_model.h5"
+    movement_model_path: str = "mlruns/0/b43f6d400f904918a679401d08045577/artifacts/target_models/data/model.h5"
     conv_trainable: bool = False
     mov_trainable: bool= True
-    network_type: str ='read_conv'
+    network_type: str ='read_both'
     #categorisation_mode = 'network'
     #decision_mode = 'network'
     decision_mode: str= 'network'
     categorisation_mode: str = 'network'
+
+@dataclass
+class ReplayConfig(TrainerConfig):
+    conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
+    movement_model_path: str = "mlruns/0/b43f6d400f904918a679401d08045577/artifacts/target_models/data/model.h5"
+    network_type: str ='read_movement'
+    decision_mode: str= 'network'
+    categorisation_mode: str = 'random'
 
 
 @dataclass

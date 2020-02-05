@@ -3,30 +3,13 @@ from pathlib import Path
 from lartpc_game.actors.observations import Observation2DFactory
 from lartpc_game import data
 import numpy as np
-from models import Actor
+from models import Actor, ActorFactory
 from lartpc_game.actors.actions import Action2DFactory
 from networks import ParameterBasedNetworks, create_network_factory
 #from viz import  Visualisation
 from common_configs import TrainerConfig
 from logger import Logger, MLFlowLogger
 
-
-
-def create_model_params(action_factory, observation_factory):
-    input_parameters = dict(
-        source_feature_size =observation_factory.cursor.region_source_input.basic_block_size, # size of input window
-        result_feature_size = np.prod(observation_factory.result_shape), # this is a space where we
-    )
-    output_parameters= dict(
-        possible_moves = action_factory.movement_size, #where it can move
-    )
-    other_params = dict(dense_size=32, dropout_rate=0.2)
-    model_params = dict(
-        input_parameters=input_parameters,
-        output_parameters = output_parameters,
-        other_params = other_params,
-    )
-    return model_params
 
 def prepare_game(data_path, config: TrainerConfig, network_type='empty'):
     data_generator = data.LartpcData.from_path(data_path)
@@ -36,25 +19,10 @@ def prepare_game(data_path, config: TrainerConfig, network_type='empty'):
     game = Game2D(env, max_step_number=config.max_step_number)
     action_factory = Action2DFactory(game.cursor.copy(), categories=result_dimensions)
     observation_factory = Observation2DFactory(game.cursor.copy(), categories=result_dimensions)
-    epsilon_kwrgs = dict(
-        value=config.epsilon_initial_value,
-        decay=config.epsilon_decay,
-        min=config.epsilon_min
+    actor_factory = ActorFactory(
+        action_factory, observation_factory, config
     )
-    model_params = create_model_params(action_factory, observation_factory)
-    network_builder = ParameterBasedNetworks(**model_params, action_factory=action_factory, observation_factory=observation_factory)
-    network_factory = create_network_factory(network_type, network_builder, config)
-    actor =  Actor(
-        action_factory,
-        observation_factory,
-        epsilon_kwrgs=epsilon_kwrgs,
-        network_model_factory=network_factory,
-        batch_size= config.batch_size,
-        trace_length= config.trace_length,
-        gamma = config.gamma,
-        categorisation_mode=config.categorisation_mode,
-        decision_mode=config.decision_mode,
-    )
+    actor = actor_factory.produce_actor(network_type)
     return game, actor, data_generator
 
 def simple_learn(data_path):
@@ -95,7 +63,7 @@ def simple_learn(data_path):
 
 
 if __name__ == "__main__":
-    data_path = 'assets/dump'
-    #data_path = '/home/mwm/repositories/content/dump'  # home cluster
+    #data_path = 'assets/dump'
+    data_path = '/home/mwm/repositories/content/dump'  # home cluster
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)

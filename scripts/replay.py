@@ -2,13 +2,16 @@ from pathlib import  Path
 import numpy as np
 from lartpc_game.viz import MixedModelVisualisation
 from scripts.train import prepare_game
-from common_configs import TrainerConfig
+from common_configs import ReplayConfig
 
 def simple_replay(data_path):
-    config = TrainerConfig()
+    config = ReplayConfig()
     game, actor, data_generator = prepare_game(data_path, config, network_type='empty')
     vis = MixedModelVisualisation(game)
-    actor.load_models(Path('assets/model_dumps'))
+    runpath = Path("mlruns/0/b43f6d400f904918a679401d08045577/artifacts/")
+    target = runpath/"target_models/data/model.h5"
+    model = runpath/"models/data/model.h5"
+    actor.load_models(model, target)
     game.max_step_number =12
     for iterate_maps in range(50):
         map_number = np.random.randint(0, len(data_generator))

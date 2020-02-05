@@ -24,7 +24,6 @@ def random_category(t):
 def fun(x):
     x = tf.cast(x > 0.0, tf.int32)
     x = tf.cast(x, tf.float32)
-
     return x
 
 #def fun2(x):
