@@ -1,6 +1,6 @@
 # Lartpc as Reinforcement Learning, using deep q learning
 
-This repository contains a work towards a solution of lartpc-game problem with reinforcement learning.
+This repository contains a work towards a solution of lartpc-game (see repo [here](https://github.com/mmajewsk/lartpc_game)) problem with reinforcement learning.
 If you don't know what is LARTPC you can find useful information in the resources.
 This work is based upon dataset from [deeplearnphysics.org](deeplearnphysics.org).
 This might be probably the first problem in High Energy Physics solved with reinforcement learning.
