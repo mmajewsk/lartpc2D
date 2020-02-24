@@ -1,17 +1,17 @@
-from lartpc_game.game.game import Environment2D, Game2D
+from game.game import Environment2D, Game2D
 from pathlib import Path
-from lartpc_game.actors.observations import Observation2DFactory
-from lartpc_game import data
+from actors.observations import Observation2DFactory
+import data
 import numpy as np
 from models import Actor, ActorFactory
-from lartpc_game.actors.actions import Action2DFactory
-from networks import ParameterBasedNetworks, create_network_factory
+from actors.actions import Action2DFactory
+from networks import NetworkFactory
 #from viz import  Visualisation
-from common_configs import TrainerConfig
+from common_configs import TrainerConfig, ClassicConfConfig
 from logger import Logger, MLFlowLogger
 
 
-def prepare_game(data_path, config: TrainerConfig, network_type='empty'):
+def prepare_game(data_path, config: TrainerConfig, classic_config, network_type='empty'):
     data_generator = data.LartpcData.from_path(data_path)
     result_dimensions = 3
     env = Environment2D(result_dimensions=result_dimensions)
@@ -20,14 +20,15 @@ def prepare_game(data_path, config: TrainerConfig, network_type='empty'):
     action_factory = Action2DFactory(game.cursor.copy(), categories=result_dimensions)
     observation_factory = Observation2DFactory(game.cursor.copy(), categories=result_dimensions)
     actor_factory = ActorFactory(
-        action_factory, observation_factory, config
+        action_factory, observation_factory, config, classic_config
     )
     actor = actor_factory.produce_actor(network_type)
     return game, actor, data_generator
 
 def simple_learn(data_path):
     config = TrainerConfig()
-    game, actor, data_generator = prepare_game(data_path, config, network_type=config.network_type)
+    classic_config = ClassicConfConfig()
+    game, actor, data_generator = prepare_game(data_path, config, network_type=config.network_type, classic_config=classic_config)
     logger = Logger()
     mlf_logger = MLFlowLogger()
     mlf_logger.log_config(config)
@@ -63,7 +64,7 @@ def simple_learn(data_path):
 
 
 if __name__ == "__main__":
-    #data_path = 'assets/dump'
-    data_path = '/home/mwm/repositories/content/dump'  # home cluster
+    data_path = 'assets/dump'
+    #data_path = '/home/mwm/repositories/content/dump'  # home cluster
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)

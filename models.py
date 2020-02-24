@@ -1,11 +1,11 @@
 import numpy as np
 from pathlib import  Path
-from lartpc_game.actors.actions import Action2DFactory, GameAction2D, ModelAction2D
-from networks import load_model, ParameterBasedNetworks, create_network_factory
-from lartpc_game.actors.base_models import BaseActor, BaseMemoryActor, SquashedTraceBuffer
-from lartpc_game.actors.states import GameVisibleState2D, VisibleState2DFactory
-from lartpc_game.actors.observations import GameObservation2D, Observation2DFactory
-from lartpc_game.game.dims import neighborhood2d
+from actors.actions import Action2DFactory, GameAction2D, ModelAction2D
+from networks import load_model, NetworkFactory
+from actors.base_models import BaseActor, BaseMemoryActor, SquashedTraceBuffer
+from actors.states import GameVisibleState2D, VisibleState2DFactory
+from actors.observations import GameObservation2D, Observation2DFactory
+from game.dims import neighborhood2d
 import random
 
 
@@ -183,7 +183,8 @@ class Actor(BaseMemoryActor, BaseActor):
             action_factory: Action2DFactory,
             observation_factory: Observation2DFactory,
             epsilon_kwrgs: dict,
-            network_model_factory,
+            model,
+            target_model,
             batch_size: int,
             trace_length: int,
             gamma: float,
@@ -196,8 +197,8 @@ class Actor(BaseMemoryActor, BaseActor):
         self.batch_size = batch_size
         self.trace_length = trace_length
         self.epsilon = Epsilon(**epsilon_kwrgs)
-        self.model = network_model_factory()
-        self.target_model = network_model_factory()
+        self.model = model
+        self.target_model = target_model
         self.gamma = gamma
         self.tau = .225
         assert decision_mode in ['network', 'random']
@@ -205,16 +206,6 @@ class Actor(BaseMemoryActor, BaseActor):
         self.decision_mode = decision_mode
         self.categorisation_mode = categorisation_mode
         self._choose_action_creation()
-
-    def load_models_folder(self, path: Path):
-        model_path = path/'model.h5'
-        target_path = path/'target_model.h5'
-        self.load_models(model_path, target_path)
-
-    def load_models(self, path: Path, target_path: Path):
-        import tensorflow as tf
-        self.model = load_model(path, custom_objects={'tf':tf})
-        self.target_model = load_model(target_path, custom_objects={'tf':tf})
 
     def create_action(self, state: GameObservation2D, use_epsilon=True) -> ModelAction2D:
         if use_epsilon:
@@ -235,7 +226,7 @@ class Actor(BaseMemoryActor, BaseActor):
                 post_action = self.action_factory.randomise_movement
             def model_response(state) -> ModelAction2D:
                 observation_to_predict = self.observation_factory.to_network_input(state)
-                response = self.model.predict(observation_to_predict)
+                response = self.model.model.predict(observation_to_predict)
                 action = ModelAction2D(*response)
                 return post_action(action)
             self.model_action = model_response
@@ -244,11 +235,11 @@ class Actor(BaseMemoryActor, BaseActor):
         return len(self.memory.buffer) >self.batch_size
 
     def target_train(self):
-        weights = self.model.get_weights()
-        target_weights = self.target_model.get_weights()
+        weights = self.model.model.get_weights()
+        target_weights = self.target_model.model.get_weights()
         for i in range(len(target_weights)):
             target_weights[i] = weights[i] * self.tau + target_weights[i] * (1 - self.tau)
-        self.target_model.set_weights(target_weights)
+        self.target_model.model.set_weights(target_weights)
 
     def add_future_to_samples(self, samples):
         batched_samples = [[], []]
@@ -264,12 +255,12 @@ class Actor(BaseMemoryActor, BaseActor):
             #state, action, reward, new_state, done = sample
             observation = self.observation_factory.game_to_model_observation(current_state.obs)
             observation_to_predict = self.observation_factory.to_network_input(observation)
-            movement_target, category_target = self.target_model.predict(observation_to_predict)
+            movement_target, category_target = self.target_model.model.predict(observation_to_predict)
             movement_target = movement_target.squeeze()
             if new_state.done:
                 movement_target[action.movement_number] = new_state.reward
             else:
-                future_movement, predicted_classes = self.target_model.predict(self.observation_factory.to_network_input(observation))
+                future_movement, predicted_classes = self.target_model.model.predict(self.observation_factory.to_network_input(observation))
                 Q_future = max(future_movement.squeeze())
                 movement_target[action.movement_number] = new_state.reward + Q_future * self.gamma
             movement_target_with_future = np.expand_dims(np.expand_dims(movement_target, axis=0), axis=0)
@@ -305,11 +296,11 @@ class Actor(BaseMemoryActor, BaseActor):
         batched_samples, batched_targets = self.add_future_to_samples(samples)
         #assert batched_samples.shape[:-1] == (2, self.batch_size)
         #print(len(batched_samples), batched_samples[0].shape)
-        return self.model.fit(batched_samples, batched_targets, epochs=1)
+        return self.model.model.fit(batched_samples, batched_targets, epochs=1)
 
     def dump_models(self, path: Path):
-        self.model.save(path/'model.h5')
-        self.target_model.save(path/'target_model.h5')
+        self.model.save(path, 'model.h5')
+        self.target_model.save(path, 'target_model.h5')
 
 def create_model_params(action_factory, observation_factory):
     input_parameters = dict(
@@ -328,17 +319,24 @@ def create_model_params(action_factory, observation_factory):
     return model_params
 
 class ActorFactory:
-    def __init__(self, action_factory, observation_factory, config):
+    def __init__(self, action_factory, observation_factory, config, classic_config):
         self.action_factory = action_factory
         self.observation_factory = observation_factory
         self.config = config
+        self.classic_config = classic_config
 
     def produce_actor(self, network_type) -> Actor:
         model_params = create_model_params(self.action_factory, self.observation_factory)
-        network_builder = ParameterBasedNetworks(**model_params, action_factory=self.action_factory,
-                                                 observation_factory=self.observation_factory)
+        network_builder = NetworkFactory(
+            **model_params,
+            action_factory=self.action_factory,
+            observation_factory=self.observation_factory,
+            config=self.config,
+            classic_config=self.classic_config
+        )
 
-        network_factory = create_network_factory(network_type, network_builder, self.config)
+        model = network_builder.create_network(network_type)
+        target_model = network_builder.create_network(network_type)
         epsilon_kwrgs = dict(
             value=self.config.epsilon_initial_value,
             decay=self.config.epsilon_decay,
@@ -348,7 +346,8 @@ class ActorFactory:
             self.action_factory,
             self.observation_factory,
             epsilon_kwrgs=epsilon_kwrgs,
-            network_model_factory=network_factory,
+            model=model,
+            target_model=target_model,
             batch_size= self.config.batch_size,
             trace_length= self.config.trace_length,
             gamma = self.config.gamma,
