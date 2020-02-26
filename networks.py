@@ -196,7 +196,7 @@ class RandomCategoryNetwork:
         return tf.random.uniform([1, 1, 3])
 
 class CombinedNetwork(BaseNetwork):
-    def __init__(self, net_a: MovementNetwork, net_b: CategorisationNetwork, a_trainable=True, b_trainable=True, *args, **kwargs):
+    def __init__(self, net_a: MovementNetwork = None, net_b: CategorisationNetwork = None, a_trainable=True, b_trainable=True, *args, **kwargs):
         BaseNetwork.__init__(self, *args, **kwargs)
         self.net_a = net_a
         self.net_b = net_b
@@ -232,14 +232,6 @@ class CombinedNetwork(BaseNetwork):
         model.compile(optimizer=adam, **compile_kwrgs)
         self.model = model
         return self
-
-    def load(self, path):
-        print("not like this")
-        net_a_path = path.parent/"mov_"+path.name
-        net_b_path = path.parent/"cat_"+path.name
-        print("Loading weights from: {} , {}".format(net_a_path, net_b_path))
-        self.net_a.load(net_a_path)
-        self.net_b.load(net_b_path)
 
 
 
@@ -344,6 +336,11 @@ class NetworkFactory:
             mov.model.set_weights(modelload2.get_weights())
             mov.model.name = 'output_movement'
             return CombinedNetwork(net_a=mov, net_b=cat, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable).compiled()
+
+        elif network_type=='read_combined':
+            net = CombinedNetwork()
+            net.load()
+
 
         elif network_type=='extra_layers':
             assert False

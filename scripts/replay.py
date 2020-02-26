@@ -2,16 +2,20 @@ from pathlib import  Path
 import numpy as np
 from lartpc_game.viz import MixedModelVisualisation
 from scripts.train import prepare_game
-from common_configs import ReplayConfig
+from common_configs import ReplayConfig, ClassicConfConfig
+from networks import CombinedNetwork
 
 def simple_replay(data_path):
     config = ReplayConfig()
-    game, actor, data_generator = prepare_game(data_path, config, network_type='empty')
+    game, actor, data_generator = prepare_game(data_path, config, classic_config=ClassicConfConfig(), network_type='empty')
     vis = MixedModelVisualisation(game)
-    runpath = Path("mlruns/0/b43f6d400f904918a679401d08045577/artifacts/")
-    target = runpath/"target_models/data/model.h5"
-    model = runpath/"models/data/model.h5"
-    actor.load_models(model, target)
+    runpath = Path("assets/model_dumps")
+    target = runpath/"target_model.h5"
+    model = runpath/"model.h5"
+    net = CombinedNetwork()
+    net.load(model)
+    #net.compiled()
+    actor.model = net
     game.max_step_number =12
     for iterate_maps in range(50):
         map_number = np.random.randint(0, len(data_generator))
@@ -29,6 +33,6 @@ def simple_replay(data_path):
                     break
 
 if __name__ == "__main__":
-    #data_path = 'assets/dump'
-    data_path = '/home/mwm/repositories/lartpc/lartpc_notebooks/Blog/content/dump'
+    data_path = 'assets/dump'
+    #data_path = '/home/mwm/repositories/lartpc/lartpc_notebooks/Blog/content/dump'
     simple_replay(data_path)
