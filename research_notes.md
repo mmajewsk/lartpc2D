@@ -272,3 +272,8 @@ Trying this model;
 Saw it in replay, "not great, not terrible", its ok to go.
 There is unresolved issue of reading two models:
 (mov+cat) == model and (mov+cat) == target_model --> in actor
+
+#26.02.2020
+
+The joined model after the refactor works, i can experiment with it now.
+The model picking code still needs some attention.

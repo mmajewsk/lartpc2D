@@ -1,0 +1,43 @@
+#+TITLE: Research
+
+* TODO
+- [X] Read research log, and readme and find interesting links or topics
+- [-] Compile list of interesting things to read
+- [ ] Search for more things
+- [ ] Read and describe each one
+
+* Things read
+** Emergence and Autocurricula
+Links:
+ - https://openai.com/blog/emergent-tool-use/ - Openai Hide and seek
+ - https://arxiv.org/pdf/1903.00742.pdf - "Autocurricula and the Emergence
+   of Innovation from Social Interaction: A Manifesto for Multi-Agent
+   Intelligence Research" general description of autocurricula
+ - https://arxiv.org/pdf/1909.07528.pdf - "emergent tool use from multi-agent
+autocurricula"  openai Hide and seek paper
+*Emergence* - when strategies develop on their own with the RL
+*Autocurricula* - the process where strategies are emerging
+
+* To read
+What to read:
+- [ ] "intrinsic motivation" - ?? reading http://www.cs.cornell.edu/~helou/IMRL.pdf on this.
+- [ ] "Proximal Policy Optimization Algorithms" https://arxiv.org/pdf/1707.06347.pdf
+- [ ] HIGH-DIMENSIONAL CONTINUOUS CONTROL USING GENERALIZED ADVANTAGE ESTIMATION https://arxiv.org/pdf/1506.02438.pdf
+- [ ] kinda related maze: "LEARNING TO NAVIGATE
+IN COMPLEX ENVIRONMENTS" https://arxiv.org/pdf/1611.03673.pdf,
+- [ ] EPISODIC CURIOSITY THROUGH REACHABILITY https://arxiv.org/pdf/1810.02274.pdf
+- [ ] Must read on multiple objectives: "Multi-task Deep Reinforcement Learning with PopArt" https://arxiv.org/pdf/1809.04474.pdf
+
+* Ideas
+- Cooperative approach
+- Sampling distribution of decision ? **
+
+* Paste box
+https://stats.stackexchange.com/questions/284265/understanding-median-frequency-balancing
+|
+V
+https://arxiv.org/pdf/1411.4734.pdf
+also: Kampffmeyer_Semantic_Segmentation_of_CVPR_2016_paper.pdf
+https://stackoverflow.com/questions/42591191/keras-semantic-segmentation-weighted-loss-pixel-map?rq=1
+https://github.com/kwotsin/TensorFlow-ENet/blob/master/get_class_weights.py
+
