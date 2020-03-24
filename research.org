@@ -1,12 +1,9 @@
 #+TITLE: Research
+* Notes
+** Reinforcement learning
+- https://lilianweng.github.io/lil-log/2018/02/19/a-long-peek-into-reinforcement-learning.html#key-concepts
+  key concepts for reinforcement learning
 
-* TODO
-- [X] Read research log, and readme and find interesting links or topics
-- [-] Compile list of interesting things to read
-- [ ] Search for more things
-- [ ] Read and describe each one
-
-* Things read
 ** Emergence and Autocurricula
 Links:
  - https://openai.com/blog/emergent-tool-use/ - Openai Hide and seek
@@ -18,8 +15,39 @@ autocurricula"  openai Hide and seek paper
 *Emergence* - when strategies develop on their own with the RL
 *Autocurricula* - the process where strategies are emerging
 
+** A2C - Actor Critic methods
+Links:
+- https://hackernoon.com/intuitive-rl-intro-to-advantage-actor-critic-a2c-4ff545978752
+that one cartoon with a fox
+- https://papers.nips.cc/paper/1786-actor-critic-algorithms.pdf - the paper of actor-critic
+- https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f -
+  really good article presentic advantage A2C along a solution fort cartpole
+*Actor - Critic*
+There are two networks, one estimates a value response from the network, the other
+
+** Deep Reinforcement learning
+-https://jerrybai1995.github.io/asset/doom/doom_report_final.pdf that doom paper
+-https://github.com/flyyufelix/VizDoom-Keras-RL that doom repo
+-https://towardsdatascience.com/reinforcement-learning-w-keras-openai-dqns-1eed3a5338c
+-https://towardsdatascience.com/cartpole-introduction-to-reinforcement-learning-ed0eb5b58288
+that cartpole example
+
+** Deep Recurent Q-Networks
+- https://arxiv.org/pdf/1507.06527.pdf DRQN
+
+** Normalization of the rewards
+- https://medium.com/@thechrisyoon/deriving-policy-gradients-and-implementing-reinforce-f887949bd63 -
+this is about implementing REINFORCE, but there is quote from Karpathy about
+normalisation.
+#+NAME: karpathy
+- http://karpathy.github.io/2016/05/31/rl/ - the source of the quote
+- https://arxiv.org/abs/1506.02438 - referenced source of the normalisation
+
+** Stochastic Policy
+
 * To read
 What to read:
+- [ ] [[karpathy]]'s text on reinforcement
 - [ ] "intrinsic motivation" - ?? reading http://www.cs.cornell.edu/~helou/IMRL.pdf on this.
 - [ ] "Proximal Policy Optimization Algorithms" https://arxiv.org/pdf/1707.06347.pdf
 - [ ] HIGH-DIMENSIONAL CONTINUOUS CONTROL USING GENERALIZED ADVANTAGE ESTIMATION https://arxiv.org/pdf/1506.02438.pdf
