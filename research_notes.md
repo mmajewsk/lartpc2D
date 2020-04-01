@@ -1,42 +1,11 @@
 ## Research Log:
 
-https://openai.com/blog/emergent-tool-use/ Reading this.
-Should take a look at attention.
-https://arxiv.org/pdf/1909.07528.pdf - next the paper
-Paper:
-
-"intrinsic motivation" - ?? reading http://www.cs.cornell.edu/~helou/IMRL.pdf on this. 
-
-autocurricula - ?? arXiv:1903.00742
-
-
-not read yet:
-https://arxiv.org/pdf/1707.06347.pdf
-
-HIGH-DIMENSIONAL CONTINUOUS CONTROL USING GENERALIZED ADVANTAGE ESTIMATION https://arxiv.org/pdf/1506.02438.pdf
-
-https://arxiv.org/pdf/1707.06347.pdf
-
-
-kinda related maze: https://arxiv.org/pdf/1611.03673.pdf, https://arxiv.org/pdf/1810.02274.pdf
-Must read on multiple objectives: https://arxiv.org/pdf/1809.04474.pdf
-
-
 24.11.2019
 
 I need to implement sample wieght map. Im working on classical convolutions.
 
 ** Sampling distribution of decision ? **
 
-Weighed map;
-
-https://stats.stackexchange.com/questions/284265/understanding-median-frequency-balancing
- |
- V
-https://arxiv.org/pdf/1411.4734.pdf
-also: Kampffmeyer_Semantic_Segmentation_of_CVPR_2016_paper.pdf
-https://stackoverflow.com/questions/42591191/keras-semantic-segmentation-weighted-loss-pixel-map?rq=1
-https://github.com/kwotsin/TensorFlow-ENet/blob/master/get_class_weights.py
 ## Experiments
 
  31.1.02.2019
