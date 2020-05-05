@@ -124,6 +124,14 @@ class MovementValueNetwork(MovementNetwork):
         self.model = model
         return self
 
+class MovementCriticNetwork(MovementValueNetwork):
+
+    def build(self, source_in, result_in, output_name):
+        l = MovementNetwork.build(self, source_in, result_in, output_name)
+        output = create_movement_output(l, 1, output_name)
+        return output
+
+
 class MovementPolicyNetwork(MovementNetwork):
 
 
@@ -375,7 +383,7 @@ class NetworkFactory:
             mov = MovementPolicyNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
             actor = CombinedNetworkA2C(net_a=mov, net_b=cat, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable).compiled()
             # this has to be just like movement
-            critic = MovementValueNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
+            critic = MovementCriticNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
             return actor, critic
         elif network_type=='read_combined':
             net = CombinedNetwork()

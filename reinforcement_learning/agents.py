@@ -205,6 +205,7 @@ class A2CAgent(RLAgent):
         states_batch_2 = []
         adv_batch = []
         disc_batch = []
+        targets_batch = []
         _to_input = lambda x: self.observation_factory.to_network_input(self.observation_factory.game_to_model_observation(x))
         for sample_no, sample in enumerate(samples):
             # @TODO check if this is correct (if steps are in correct order)
@@ -214,26 +215,33 @@ class A2CAgent(RLAgent):
             if np.std(discounted_rewards):
                 discounted_rewards /= np.std(discounted_rewards)
             else:
-                raise ValueError
+                # this could be covered differently
+                continue
+            disc_batch += discounted_rewards.tolist()
             states_1 = np.concatenate([_to_input(step[0].obs)[0] for step in sample])
             states_2 = np.concatenate([_to_input(step[0].obs)[1] for step in sample])
             actions = [step[1] for step in sample]
             values = self.model_critic.model.predict([states_1,states_2])
-            advantages = np.zeros((self.trace_length, self.action_factory.movement_size))
+            #advantages = np.zeros((self.trace_length, self.action_factory.movement_size))
             for i in range(self.trace_length):
                 policy_action = PolicyAction.from_game(actions[i], self.action_factory)
                 # it coulde be advantage[i][self.actions[i]] = discounted_rewards[i]-values[i], but because policy is already an array,
                 # with only one element equal to zero, we can do it like this:
-                advantages[i] = policy_action.policy * (discounted_rewards[i]-values[i])
-            advantages_batch[sample_no*self.trace_length:sample_no*self.trace_length+self.trace_length] = advantages
-            discounted_rewards_batch[sample_no * self.trace_length:sample_no * self.trace_length + self.trace_length] = discounted_rewards
+                advantage = policy_action.policy * (discounted_rewards[i]-values[i])
+                adv_batch.append(advantage)
+            #advantages_batch[sample_no*self.trace_length:sample_no*self.trace_length+self.trace_length] = advantages
+            #discounted_rewards_batch[sample_no * self.trace_length:sample_no * self.trace_length + self.trace_length] = discounted_rewards
+            targets_batch += [self.state_factory.game_to_model_visible_state(step[0]).target for step in sample]
             states_batch_1.append(states_1)
             states_batch_2.append(states_2)
         states_batch_1 = np.concatenate(states_batch_1)
         states_batch_2 = np.concatenate(states_batch_2)
         states_batch = [states_batch_1, states_batch_2]
-        actor_loss = self.model_actor.fit(states_batch, advantages_batch, nb_epoch=1)
-        critic_loss = self.model_critic.fit(states_batch, discounted_rewards_batch, nb_epoch=1)
+        targets_batch = np.concatenate(targets_batch)
+        adv_batch = np.concatenate(adv_batch)[:,np.newaxis,:]
+        disc_batch = np.array(disc_batch)[:,np.newaxis,np.newaxis]
+        actor_loss = self.model_actor.model.fit(states_batch, [adv_batch, targets_batch], nb_epoch=1)
+        critic_loss = self.model_critic.model.fit(states_batch,disc_batch, nb_epoch=1)
         return actor_loss, critic_loss
 
     def enough_samples_to_learn(self):
@@ -247,6 +255,9 @@ class A2CAgent(RLAgent):
         response = self.model_actor.model.predict(observation_to_predict)
         action = PolicyAction(*response)
         return action
+
+    def target_train(self):
+        pass
 
     def log_mlflow(self, package):
         package.keras.log_model(self.model_critic.model, "critic")

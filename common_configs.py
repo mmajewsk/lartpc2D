@@ -31,7 +31,7 @@ class ReplayConfig(TrainerConfig):
 
 @dataclass
 class TrainerA2C:
-    batch_size : int = 128
+    batch_size : int = 16#128
     max_step_number : int = 12
     maps_iterations: int = 4000
     trials: int = 8
