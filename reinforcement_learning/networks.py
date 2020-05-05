@@ -1,13 +1,13 @@
 import tensorflow as tf
 from dataclasses import asdict
-from keras import Input, Model
-from keras.models import Model, load_model
+from keras.models import Model
 from keras.layers import Input, Concatenate, Dense, Activation
-from keras.layers import Dropout, BatchNormalization, Lambda, Layer, Flatten
+from keras.layers import Dropout, BatchNormalization, Lambda, Flatten
 from keras.optimizers import Adam, SGD
 from keras.models import load_model
 from common_configs import ClassicConfConfig, TrainerConfig
-from abc import ABC, abstractmethod
+
+from reinforcement_learning.base_network import BaseNetwork
 
 
 def create_movement_inputs(source_feature_size, result_feature_size):
@@ -15,8 +15,8 @@ def create_movement_inputs(source_feature_size, result_feature_size):
     result_data_input = Input((None, result_feature_size), name='result_input')
     return source_data_input, result_data_input
 
-def create_movement_output(previous_layer, possible_moves):
-    output = Dense(possible_moves,name='output_movement' )(previous_layer)
+def create_movement_output(previous_layer, possible_moves, name):
+    output = Dense(possible_moves,name=name )(previous_layer)
     #output = Activation('softmax', name='output_movement')(output)
     return output
 
@@ -56,31 +56,6 @@ def produce_shaper(categories):
 #fun_cat = fun_cat_produce(self.observation_factory.categories, self.input_parameters['result_feature_size'])
 #result_clip = Lambda(fun_cat, output_shape=produce_shaper(self.observation_factory.categories))(result_in)
 
-class BaseNetwork(ABC):
-    def __init__(self, *args, **kwargs):
-        self.model = None
-
-    def load(self, path):
-        print("Loading from {}".format(path))
-        self.model = load_model(path, custom_objects={'tf': tf})
-
-    def set_model(self, model):
-        self.model = model
-
-    def set_output(self, output):
-        self.output = output
-
-    def save(self, path, name):
-        self.model.save(path/name)
-
-    @abstractmethod
-    def build(self, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def compiled(self, *args, **kwargs):
-        pass
-
 class MovementNetwork(BaseNetwork):
     def __init__(self,
                  dense_size=None,
@@ -100,7 +75,7 @@ class MovementNetwork(BaseNetwork):
         self.source_feature_size = source_feature_size #self.input_parameters
         self.result_feature_size = result_feature_size
 
-    def build(self, source_in, result_in):
+    def build(self, source_in, result_in, output_name):
         dense_size = self.dense_size
         dropout_rate = self.dropout_rate
         #source_clip =  tf.keras.layers.Lambda(lambda x : tf.cast(x>0.0,tf.float32))(source_in)
@@ -117,24 +92,58 @@ class MovementNetwork(BaseNetwork):
         l = Dense(dense_size)(l)
         l = Activation("relu")(l)
         l = Dropout(rate=dropout_rate)(l)
-        output = create_movement_output(l, self.possible_moves)
-        return output
+        return l
 
-    def compiled(self) -> Model:
+    def _get_model(self, output_name='output_movement') -> Model:
         source_in, result_in = create_movement_inputs(self.source_feature_size, self.result_feature_size)
-        self.output = self.build(source_in, result_in)
+        self.output = self.build(source_in, result_in, output_name=output_name)
         model = Model(
             inputs=[source_in, result_in],
-            outputs = [self.output],
+            outputs=[self.output],
         )
+        return model
+
+
+
+class MovementValueNetwork(MovementNetwork):
+
+    def build(self, source_in, result_in, output_name):
+        l = MovementNetwork.build(self, source_in, result_in, output_name)
+        output = create_movement_output(l, self.possible_moves, output_name)
+        return output
+
+    def compiled(self):
         compile_kwrgs = {}
         compile_kwrgs['loss'] = {
             'output_movement': 'mse'
         }
         compile_kwrgs['metrics'] = ['mae', 'acc']
         adam = Adam(lr=0.00001)
+        model = self._get_model()
         model.compile(optimizer=adam, **compile_kwrgs)
         self.model = model
+        return self
+
+class MovementPolicyNetwork(MovementNetwork):
+
+
+    def build(self, source_in, result_in, output_name):
+        l = MovementNetwork.build(self, source_in, result_in, output_name)
+        output = Dense(self.possible_moves)(l)
+        output = Activation('softmax', name=output_name)(output)
+        return output
+
+    def compiled(self):
+        compile_kwrgs = {}
+        compile_kwrgs['loss'] = {
+            'policy_movement': 'categorical_crossentropy'
+        }
+        compile_kwrgs['metrics'] = ['mae', 'acc']
+        adam = Adam(lr=0.00001)
+        model = self._get_model(output_name='policy_movement')
+        model.compile(optimizer=adam, **compile_kwrgs)
+        self.model = model
+        return self
 
 
 
@@ -189,6 +198,7 @@ class CategorisationNetwork(BaseNetwork):
         sgd = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=True)
         model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['mse', 'acc'])
         self.model = model
+        return self
 
 
 class RandomCategoryNetwork:
@@ -234,9 +244,31 @@ class CombinedNetwork(BaseNetwork):
         return self
 
 
+class CombinedNetworkA2C(CombinedNetwork):
+    def compiled(self, inputs=None, outputs=None):
+        source_in, result_in = create_movement_inputs(self.net_a.source_feature_size,
+                                                      self.net_a.result_feature_size)
+        self.output_a, self.output_b = self.build(source_in, result_in)
+        # self.output_a.name = 'output_movement'
+        # self.output_b.name = 'output_category'
+        model = Model(
+            inputs=[source_in, result_in],
+            outputs=[self.output_a, self.output_b],
+        )
+        compile_kwrgs = {}
+        compile_kwrgs['loss'] = {
+            'model_2': 'categorical_crossentropy',
+            'model_1': 'categorical_crossentropy'
+        }
+        compile_kwrgs['metrics'] = ['mse', 'mae', 'acc']
+        adam = Adam(lr=0.00001)
+        model.compile(optimizer=adam, **compile_kwrgs)
+        self.model = model
+        return self
+
 
 class MovNormalCatRandom(CombinedNetwork):
-    def __init__(self, mov: MovementNetwork=None, trainable=True):
+    def __init__(self, mov: MovementValueNetwork=None, trainable=True):
         self.mov = mov
         self.cat = RandomCategoryNetwork().build()
         CombinedNetwork.__init__(self, self.mov, self.cat, a_trainable=trainable)
@@ -285,7 +317,7 @@ class CombinedExtraNetwork(CombinedNetwork):
         l = Dense(dense_size)(l)
         l = Activation("relu")(l)
         l = Dropout(rate=dropout_rate)(l)
-        mov_extra = create_movement_output(l, self.other_params )
+        mov_extra = create_movement_output(l, self.other_params, name ='output_movement')
         o2 = Dense(result_output_size)(l)
         cat_extra = Activation("Sigmoid")(o2)
         return mov_extra, cat_extra
@@ -316,12 +348,12 @@ class NetworkFactory:
         if network_type=='empty':
             return None
         elif network_type=='movement':
-            mov = MovementNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters )
+            mov = MovementValueNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters)
             return MovNormalCatRandom(mov=mov)
 
         elif network_type=='read_conv':
             category_network = CategorisationNetwork(self.config.conv_model_path)
-            mov = MovementNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters )
+            mov = MovementValueNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters)
             return CombinedNetwork(net_a=mov, net_b=category_network, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable)
 
         elif network_type=='read_both':
@@ -330,13 +362,21 @@ class NetworkFactory:
             modelload = load_model(self.config.conv_model_path, custom_objects={'tf':tf})
             cat.model.set_weights(modelload.get_weights())
             cat.model.name = 'output_category'
-            mov = MovementNetwork(**self.output_parameters, **self.input_parameters, **self.other_params, categories=self.observation_factory.categories)
+            mov = MovementValueNetwork(**self.output_parameters, **self.input_parameters, **self.other_params, categories=self.observation_factory.categories)
             modelload2 = load_model(self.config.movement_model_path, custom_objects={'tf':tf})
             mov.compiled()
             mov.model.set_weights(modelload2.get_weights())
             mov.model.name = 'output_movement'
             return CombinedNetwork(net_a=mov, net_b=cat, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable).compiled()
 
+        elif network_type=='actor_critic':
+            cat = CategorisationNetwork(**asdict(self.classic_config), result_feature_size=self.classic_config.result_output, categories=self.observation_factory.categories)
+            cat.compiled()
+            mov = MovementPolicyNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
+            actor = CombinedNetworkA2C(net_a=mov, net_b=cat, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable).compiled()
+            # this has to be just like movement
+            critic = MovementValueNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
+            return actor, critic
         elif network_type=='read_combined':
             net = CombinedNetwork()
             net.load()

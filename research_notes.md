@@ -246,3 +246,61 @@ There is unresolved issue of reading two models:
 
 The joined model after the refactor works, i can experiment with it now.
 The model picking code still needs some attention.
+
+#01.04.2020 
+so the next step is to do A2C agent, which is actually policy gradient based
+also, what you have implemented is DDQN
+
+#16.04.2020
+Working on a2c
+
+#18.04.2020
+Still working on a2c comming from this examples
+https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/a2c.py
+The important not here is that it learns after each episode.
+I think I read about this being different from dqn, I must check that.
+Yes, this was referenced here, as i thought it means that we don't need multi
+armed bandit.
+
+Ok so, I ne ed to rewrite actions and action factory
+The idea for now to implement is to make so that f.e. action factory would bethe
+only place that creates the actions.
+And that factory is stored within the agent 
+
+Ok, I rewrote ModelAction2D to QAction2D, next step is to create PolicyAction2D
+
+
+# 27.04.2020
+
+I am implementing a2c training, the std, normalisation is weird, but i think the
+authour did not know how to comprehend div by 0.
+Anyway, Im going to keep it that way
+
+The previous implementation used trace length equal to one, since there was no
+need to use next steps. Im gonna investigate if its not an error now. (Its not)
+
+# 28.04.2020
+
+So what's left to do is to pick up an architecture for actor and critic.
+Tried to find how A2C is defined in openai baseline https://github.com/openai/baselines
+but the code is really making that hard to pull off
+
+This is bearable but small https://github.com/germain-hug/Deep-RL-Keras
+This is pytorch but seems ok https://github.com/TianhongDai/reinforcement-learning-algorithms/
+
+# 29.04.2020
+
+So it seems that the only difference in learning is that when you use dqn you
+have to use mse.
+In case of actor critic categorical crossentropy is the same as the actual
+learning function.
+I should check if tweaking existing dqn would change it into simple policy gradient.
+Im starting to rewrite train script.
+
+# 30.04.2020
+In order to make that in classic a2c sense, I have to make it so that experience
+is not repeated, and one sars is learned only once.
+Which after short thought, I will not do, instead I will try to learn it
+batches.
+@TODO This is important for the potential paper. It might be that this is A3C
+Whats left is to test this darn thing.

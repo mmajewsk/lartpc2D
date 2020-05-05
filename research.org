@@ -10,7 +10,7 @@
 *Markov Decision Process* A probabilistic process (stochastic), meaning that it
  describes [S,A,Pa,Ra], such that Pa(s,s')==Pr(St+1=s'|st=s,at=a) probability
  that action {a}a in state {s}s at time {t}t will lead to state {s'}s' at time {t+1}t+1,
- *Partially observable Markov decision process* is MDP but you cannot observe
+*Partially observable Markov decision process* is MDP but you cannot observe
  fully the underlying state
 
 ** Curriculum
@@ -49,12 +49,25 @@ that one cartoon with a fox
 *Actor - Critic*
 There are two networks, one estimates a value response from the network, the other
 
+** ACKTR - Actor Critic using Kronecker-Factored Trust Region (ACKTR)
+- https://stable-baselines.readthedocs.io/en/master/modules/acktr.html
+variation on a2c, possibly better
 ** Deep Reinforcement learning
 -https://jerrybai1995.github.io/asset/doom/doom_report_final.pdf that doom paper
 -https://github.com/flyyufelix/VizDoom-Keras-RL that doom repo
 -https://towardsdatascience.com/reinforcement-learning-w-keras-openai-dqns-1eed3a5338c
 -https://towardsdatascience.com/cartpole-introduction-to-reinforcement-learning-ed0eb5b58288
 that cartpole example
+
+** MCTS - Monte Carlo Tree Search
+- https://pl.wikipedia.org/wiki/Monte-Carlo_Tree_Search
+This is probably the best explanation.
+Start at root tree of decision.
+Select nodes at random.
+If you find leaf, make a simulation.
+Update the count of win/loses at each node.
+Repeat until some constraint.
+Pick next action based on some criteria.
 
 ** Deep Recurent Q-Networks
 - https://arxiv.org/pdf/1507.06527.pdf DRQN
@@ -68,6 +81,11 @@ normalisation.
 - https://arxiv.org/abs/1506.02438 - referenced source of the normalisation
 
 ** Stochastic Policy
+*Stochastic* having a random probability distribution or pattern that may be
+analysed statistically but may not be predicted precisely.
+** Temporal Difference
+- https://medium.com/@violante.andre/simple-reinforcement-learning-temporal-difference-learning-e883ea0d65b0
+
 ** Weighed map - mean frequency balancing
 - https://stats.stackexchange.com/questions/284265/understanding-median-frequency-balancing
 - https://arxiv.org/pdf/1411.4734.pdf
@@ -78,7 +96,7 @@ This was employed in the code training categorisation.
 
 
 * To read
-What to read:
+What to read [0/12]:
 - [ ] [[karpathy]]'s text on reinforcement
 - [ ] "intrinsic motivation" - ?? reading http://www.cs.cornell.edu/~helou/IMRL.pdf on this.
 - [ ] "Proximal Policy Optimization Algorithms" https://arxiv.org/pdf/1707.06347.pdf
@@ -88,9 +106,14 @@ IN COMPLEX ENVIRONMENTS" https://arxiv.org/pdf/1611.03673.pdf,
 - [ ] EPISODIC CURIOSITY THROUGH REACHABILITY https://arxiv.org/pdf/1810.02274.pdf
 - [ ] Must read on multiple objectives: "Multi-task Deep Reinforcement Learning with PopArt" https://arxiv.org/pdf/1809.04474.pdf
 - [ ] c51 agent?
+- [ ] AlphaGo: https://www.nature.com/articles/natur...
+- [ ] AlphaGo Zero: https://www.nature.com/articles/natur...
+- [ ] AlphaZero: https://arxiv.org/abs/1712.01815
+- [ ] MuZero: https://arxiv.org/abs/1911.08265
 
 * Ideas
 - Cooperative approach
-- Sampling distribution of decision ? **
+- Sampling distribution of decision ?
 
 * Paste box
+** <2020-04-30 Thu> Something

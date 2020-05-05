@@ -67,8 +67,7 @@ class MLFlowLogger:
         os.remove(pkl_path)
 
     def log_model(self, actor):
-        mlflow.keras.log_model(actor.model.model, "models")
-        mlflow.keras.log_model(actor.target_model.model, "target_models")
+        actor.log_mlflow(mlflow)
 
     def stop(self):
         mlflow.end_run()

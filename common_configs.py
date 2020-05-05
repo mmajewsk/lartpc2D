@@ -29,6 +29,20 @@ class ReplayConfig(TrainerConfig):
     decision_mode: str= 'network'
     categorisation_mode: str = 'random'
 
+@dataclass
+class TrainerA2C:
+    batch_size : int = 128
+    max_step_number : int = 12
+    maps_iterations: int = 4000
+    trials: int = 8
+    network_type: str = 'a2c'
+    conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
+    mov_trainable: bool= True
+    conv_trainable: bool = False
+    trace_length: int = 4 # lower than max_step number
+    gamma: float = 0.8
+    actor_lr = 0.0001
+    critic_lr = 0.0001
 
 @dataclass
 class ClassicConfConfig:

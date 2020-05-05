@@ -3,7 +3,7 @@ import numpy as np
 from lartpc_game.viz import MixedModelVisualisation
 from scripts.train import prepare_game
 from common_configs import ReplayConfig, ClassicConfConfig
-from networks import CombinedNetwork
+from reinforcement_learning.networks import CombinedNetwork
 
 def simple_replay(data_path):
     config = ReplayConfig()
@@ -25,7 +25,7 @@ def simple_replay(data_path):
             for model_run_iteration in range(game.max_step_number):
                 current_observation = game.get_observation()
                 model_action = actor.create_action(current_observation, use_epsilon=False)
-                game_action = actor.action_factory.model_action_to_game(model_action)
+                game_action = model_action.to_game_aciton(actor.action_factory)
                 state = game.step(game_action)
                 vis.obs_action(current_observation, game_action)
                 vis.update(0)
