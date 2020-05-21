@@ -94,12 +94,13 @@ class MovementNetwork(BaseNetwork):
         l = Dropout(rate=dropout_rate)(l)
         return l
 
-    def _get_model(self, output_name='output_movement') -> Model:
+    def _get_model(self, name, output_name='output_movement') -> Model:
         source_in, result_in = create_movement_inputs(self.source_feature_size, self.result_feature_size)
         self.output = self.build(source_in, result_in, output_name=output_name)
         model = Model(
             inputs=[source_in, result_in],
             outputs=[self.output],
+            name=name
         )
         return model
 
@@ -112,24 +113,27 @@ class MovementValueNetwork(MovementNetwork):
         output = create_movement_output(l, self.possible_moves, output_name)
         return output
 
-    def compiled(self):
+    def compiled(self, name='movement_network'):
         compile_kwrgs = {}
         compile_kwrgs['loss'] = {
             'output_movement': 'mse'
         }
         compile_kwrgs['metrics'] = ['mae', 'acc']
         adam = Adam(lr=0.00001)
-        model = self._get_model()
+        model = self._get_model(name)
         model.compile(optimizer=adam, **compile_kwrgs)
         self.model = model
         return self
 
 class MovementCriticNetwork(MovementValueNetwork):
 
-    def build(self, source_in, result_in, output_name):
+    def build(self, source_in, result_in, output_name='critic'):
         l = MovementNetwork.build(self, source_in, result_in, output_name)
         output = create_movement_output(l, 1, output_name)
         return output
+
+    def compiled(self, name='critic_movement_network'):
+        return MovementValueNetwork.compiled(self, name)
 
 
 class MovementPolicyNetwork(MovementNetwork):
@@ -148,7 +152,7 @@ class MovementPolicyNetwork(MovementNetwork):
         }
         compile_kwrgs['metrics'] = ['mae', 'acc']
         adam = Adam(lr=0.00001)
-        model = self._get_model(output_name='policy_movement')
+        model = self._get_model(name="mov_pol",output_name='policy_movement')
         model.compile(optimizer=adam, **compile_kwrgs)
         self.model = model
         return self
@@ -198,10 +202,10 @@ class CategorisationNetwork(BaseNetwork):
         output = Activation("sigmoid")(l)
         return output
 
-    def compiled(self):
+    def compiled(self, name='categorisation_network' ):
         source_input = self.create_input()
         self.output = self.build(source_input)
-        model = Model(inputs=[source_input], outputs=[self.output])
+        model = Model(inputs=[source_input], outputs=[self.output], name=name)
         adam = Adam(lr=0.00001)
         sgd = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=True)
         model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['mse', 'acc'])
@@ -265,8 +269,8 @@ class CombinedNetworkA2C(CombinedNetwork):
         )
         compile_kwrgs = {}
         compile_kwrgs['loss'] = {
-            'model_2': 'categorical_crossentropy',
-            'model_1': 'categorical_crossentropy'
+            'mov_pol': 'categorical_crossentropy',
+            'categorisation_network': 'categorical_crossentropy'
         }
         compile_kwrgs['metrics'] = ['mse', 'mae', 'acc']
         adam = Adam(lr=0.00001)
@@ -383,7 +387,8 @@ class NetworkFactory:
             mov = MovementPolicyNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
             actor = CombinedNetworkA2C(net_a=mov, net_b=cat, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable).compiled()
             # this has to be just like movement
-            critic = MovementCriticNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
+            critic = MovementCriticNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled(name='critic')
+            critic.name = 'critic'
             return actor, critic
         elif network_type=='read_combined':
             net = CombinedNetwork()

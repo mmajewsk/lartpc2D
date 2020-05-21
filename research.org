@@ -94,9 +94,16 @@ analysed statistically but may not be predicted precisely.
 - https://github.com/kwotsin/TensorFlow-ENet/blob/master/get_class_weights.py
 This was employed in the code training categorisation.
 
+** Multi-task learning
+- https://ruder.io/multi-task/ a good short overview
+** AlphaGo Zero
+Uses MCTS to traing policy and value network.
+** Search for Multi-task reinforcement learning
+*** https://arxiv.org/pdf/1901.08162.pdf not fully read this focuses on meta learning and casual reasoning
+*** https://openreview.net/pdf?id=rkgpv2VFvr not fully read but kind of theoritical
 
 * To read
-What to read [0/12]:
+What to read [1/12]:
 - [ ] [[karpathy]]'s text on reinforcement
 - [ ] "intrinsic motivation" - ?? reading http://www.cs.cornell.edu/~helou/IMRL.pdf on this.
 - [ ] "Proximal Policy Optimization Algorithms" https://arxiv.org/pdf/1707.06347.pdf
@@ -107,7 +114,7 @@ IN COMPLEX ENVIRONMENTS" https://arxiv.org/pdf/1611.03673.pdf,
 - [ ] Must read on multiple objectives: "Multi-task Deep Reinforcement Learning with PopArt" https://arxiv.org/pdf/1809.04474.pdf
 - [ ] c51 agent?
 - [ ] AlphaGo: https://www.nature.com/articles/natur...
-- [ ] AlphaGo Zero: https://www.nature.com/articles/natur...
+- [X] AlphaGo Zero: https://www.nature.com/articles/natur...
 - [ ] AlphaZero: https://arxiv.org/abs/1712.01815
 - [ ] MuZero: https://arxiv.org/abs/1911.08265
 
@@ -115,5 +122,16 @@ IN COMPLEX ENVIRONMENTS" https://arxiv.org/pdf/1611.03673.pdf,
 - Cooperative approach
 - Sampling distribution of decision ?
 
+* Simmilar:
+- https://icml.cc/2012/papers/101.pdf Artist agent That drawing work
+- https://www.ijcai.org/Proceedings/15/Papers/359.pdfStroke-Based Stylization
+  Learning and Rendering with Inverse Reinforcement Learning
+- https://openreview.net/forum?id=SkgC6TNFvr Reinforced active learning for image segmentation
+- https://rss16-representations.mit.edu/papers/BeyondGeometryRSSW16_9_CameraReadySubmission_Reza.pdf
+  Reinforcement Learning for Semantic Segmentation
+- https://www.ai.rug.nl/~mwiering/GROUP/ARTICLES/rl_classification.pdf that one
+  is close in Indoor Scenes
+- https://workshops.aapr.at/wp-content/uploads/2019/05/ARW-OAGM19_30.pdf the only trully similar from the title
+- https://openreview.net/pdf?id=rkgpv2VFvr SHARING KNOWLEDGE IN MULTI-TASK
+DEEP REINFORCEMENT LEARNING
 * Paste box
-** <2020-04-30 Thu> Something

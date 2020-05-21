@@ -270,7 +270,6 @@ And that factory is stored within the agent
 Ok, I rewrote ModelAction2D to QAction2D, next step is to create PolicyAction2D
 
 
-# 27.04.2020
 
 I am implementing a2c training, the std, normalisation is weird, but i think the
 authour did not know how to comprehend div by 0.
@@ -304,3 +303,10 @@ Which after short thought, I will not do, instead I will try to learn it
 batches.
 @TODO This is important for the potential paper. It might be that this is A3C
 Whats left is to test this darn thing.
+
+# 05.05.2020
+So the problem is that i have might mistakenly converted with "from_game" action
+method, check that out !
+Runs, now lets find out if it trains at all and fix logging 
+
+# 07.05.2020

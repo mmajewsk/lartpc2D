@@ -31,6 +31,7 @@ def simple_learn(data_path):
     game, agent, data_generator = prepare_game(data_path, config, network_type=config.network_type, classic_config=classic_config)
     logger = Logger()
     mlf_logger = MLFlowLogger()
+    mlf_logger.start()
     mlf_logger.log_config(config)
     for iterate_maps in range(config.maps_iterations):
         map_number = np.random.randint(0, len(data_generator))

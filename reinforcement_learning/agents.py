@@ -182,6 +182,7 @@ class A2CAgent(RLAgent):
         self.critic_lr = critic_lr
         self.model_actor = model_actor
         self.model_critic = model_critic
+        self._dump_message = False
 
 
     def discount_rewards(self, rewards):
@@ -240,8 +241,8 @@ class A2CAgent(RLAgent):
         targets_batch = np.concatenate(targets_batch)
         adv_batch = np.concatenate(adv_batch)[:,np.newaxis,:]
         disc_batch = np.array(disc_batch)[:,np.newaxis,np.newaxis]
-        actor_loss = self.model_actor.model.fit(states_batch, [adv_batch, targets_batch], nb_epoch=1)
-        critic_loss = self.model_critic.model.fit(states_batch,disc_batch, nb_epoch=1)
+        actor_loss = self.model_actor.model.fit(states_batch, [adv_batch, targets_batch], epochs=1)
+        critic_loss = self.model_critic.model.fit(states_batch,disc_batch, epochs=1)
         return actor_loss, critic_loss
 
     def enough_samples_to_learn(self):
@@ -264,7 +265,9 @@ class A2CAgent(RLAgent):
         package.keras.log_model(self.model_actor.model, "actor")
 
     def dump_models(self, path):
-        print("dumping models not implemented")
+        if not self._dump_message:
+            print("dumping models not implemented")
+            self._dump_message = True
         pass
 
 def create_model_params(action_factory, observation_factory):

@@ -43,7 +43,8 @@ class Logger:
 
 class MLFlowLogger:
     def start(self):
-        mlflow.set_tracking_uri('file:///home/mwm/repositories/lartpc_remote_pycharm')
+        #mlflow.set_tracking_uri('file:///home/mwm/repositories/lartpc_remote_pycharm')
+        mlflow.set_experiment('a2c')
         mlflow.start_run()
 
     def log_config(self, config: TrainerConfig):
