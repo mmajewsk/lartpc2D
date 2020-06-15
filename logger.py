@@ -42,9 +42,12 @@ class Logger:
             pickle.dump(self, f)
 
 class MLFlowLogger:
+    def __init__(self, trainer_config):
+        self.experiment = trainer_config.network_type
+
     def start(self):
         #mlflow.set_tracking_uri('file:///home/mwm/repositories/lartpc_remote_pycharm')
-        mlflow.set_experiment('a2c')
+        mlflow.set_experiment(self.experiment)
         mlflow.start_run()
 
     def log_config(self, config: TrainerConfig):

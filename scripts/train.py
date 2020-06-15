@@ -26,11 +26,11 @@ def prepare_game(data_path, config: TrainerConfig, classic_config, network_type=
 
 
 def simple_learn(data_path):
-    config = TrainerA2C()
+    config = TrainerConfig()
     classic_config = ClassicConfConfig()
     game, agent, data_generator = prepare_game(data_path, config, network_type=config.network_type, classic_config=classic_config)
     logger = Logger()
-    mlf_logger = MLFlowLogger()
+    mlf_logger = MLFlowLogger(config)
     mlf_logger.start()
     mlf_logger.log_config(config)
     for iterate_maps in range(config.maps_iterations):

@@ -200,8 +200,6 @@ class A2CAgent(RLAgent):
         samples = self.memory.sample(self.batch_size, self.trace_length)
         assert len(samples) == self.batch_size
         # the multiplication here is because trace is only important when calculating discounts
-        advantages_batch = np.zeros((self.trace_length*self.batch_size,self.action_factory.movement_size))
-        discounted_rewards_batch = np.zeros((self.trace_length*self.batch_size,self.trace_length))
         states_batch_1 = []
         states_batch_2 = []
         adv_batch = []

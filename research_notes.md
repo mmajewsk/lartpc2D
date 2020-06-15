@@ -19,8 +19,6 @@ I need to implement sample wieght map. Im working on classical convolutions.
  R2.
  Really nice behaviour. 
  Reducing map iterations to 15->8.
- R3
- Ver interesting. Increasing steps 8->14
  R4
  The problem was that it was going back and forth a lot.
  Steps 14->10
@@ -310,3 +308,26 @@ method, check that out !
 Runs, now lets find out if it trains at all and fix logging 
 
 # 07.05.2020
+
+# 25.05.2020
+So A2C is showing negative loss, this seems to be because of the negative
+reward.
+BUT, the actor target must be categorical [0.0-1.0]. Im looking for problems
+with negative rewards if tis problem is solved somehow or is it done exactly the same.
+
+# 26.05.2020
+So the pong example shows that the negative reward is present also.
+
+# 08.06.2020
+ https://github.com/pythonlessons/Reinforcement_Learning
+ So i was talking about this example, but openai gym stable baselines has alos
+ an implementation that i can try.
+ https://github.com/hill-a/stable-baselines
+
+Ok so negative loss is ok
+https://stable-baselines.readthedocs.io/en/master/guide/examples.html?highlight=pong#id2
+Per the example in google colab, but ill investigate what does mean entropy
+loss, and what does it mean, and how it is implemented here.
+
+Negative loss is ok, but makes a2c perform badly. Lets just focus back at DQN,
+and show that A2C does not really have much sense.

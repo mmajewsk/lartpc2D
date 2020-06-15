@@ -110,6 +110,7 @@ class MovementValueNetwork(MovementNetwork):
 
     def build(self, source_in, result_in, output_name):
         l = MovementNetwork.build(self, source_in, result_in, output_name)
+        l = Activation("linear")(l)
         output = create_movement_output(l, self.possible_moves, output_name)
         return output
 
