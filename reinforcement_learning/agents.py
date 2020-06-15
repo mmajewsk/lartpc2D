@@ -59,7 +59,7 @@ class DDQNAgent(RLAgent):
     def create_action(self, state: GameObservation2D, use_epsilon=True) -> QAction2D:
         if use_epsilon:
             if self.epsilon.condition():
-                return self.action_factory.create_random_action()
+                return QAction2D.create_random_action(self.action_factory)
         model_obs = self.observation_factory.game_to_model_observation(state)
         return self.model_action(model_obs)
 

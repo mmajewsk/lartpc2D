@@ -21,7 +21,8 @@ def prepare_game(data_path, config: TrainerConfig, classic_config, network_type=
     agent_factory = AgentFactory(
         action_factory, observation_factory, config, classic_config
     )
-    agent = agent_factory.get_agent(network_type, network_type, config)
+    agent_type = config.agent_type
+    agent = agent_factory.get_agent(agent_type, network_type, config)
     return game, agent, data_generator
 
 
@@ -51,11 +52,9 @@ def simple_learn(data_path):
             agent.memory.add(trial_run_history)
             iterations.append(trial_run_history.copy())
             if agent.enough_samples_to_learn():
-                h1, h2 = agent.train_agent()
+                h1 = agent.train_agent()
                 logger.add_train_history(h1)
-                logger.add_train_history(h2)
                 mlf_logger.log_history(h1)
-                mlf_logger.log_history(h2)
                 agent.target_train()
         logger.game_records(dict(map=map_number, data=iterations))
         mlf_logger.log_game(map_number, iterations)

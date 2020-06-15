@@ -15,7 +15,8 @@ class TrainerConfig:
     movement_model_path: str = "mlruns/0/b43f6d400f904918a679401d08045577/artifacts/target_models/data/model.h5"
     conv_trainable: bool = False
     mov_trainable: bool= True
-    network_type: str ='read_both'
+    agent_type: str ='ddqn'
+    network_type: str = 'read_both'
     #categorisation_mode = 'network'
     #decision_mode = 'network'
     decision_mode: str= 'network'
@@ -35,7 +36,7 @@ class TrainerA2C:
     max_step_number : int = 8
     maps_iterations: int = 4000
     trials: int = 8
-    network_type: str = 'a2c'
+    agent_type: str = 'a2c'
     conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
     mov_trainable: bool= True
     conv_trainable: bool = False

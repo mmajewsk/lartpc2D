@@ -43,7 +43,7 @@ class Logger:
 
 class MLFlowLogger:
     def __init__(self, trainer_config):
-        self.experiment = trainer_config.network_type
+        self.experiment = trainer_config.agent_type
 
     def start(self):
         #mlflow.set_tracking_uri('file:///home/mwm/repositories/lartpc_remote_pycharm')
