@@ -117,6 +117,9 @@ IN COMPLEX ENVIRONMENTS" https://arxiv.org/pdf/1611.03673.pdf,
 - [X] AlphaGo Zero: https://www.nature.com/articles/natur...
 - [ ] AlphaZero: https://arxiv.org/abs/1712.01815
 - [ ] MuZero: https://arxiv.org/abs/1911.08265
+- [ ] Osim rl https://arxiv.org/pdf/1711.06922.pdf
+- [ ] vizdoom paper https://arxiv.org/pdf/1605.02097.pdf
+
 ** ACER
 https://arxiv.org/pdf/1611.01224.pdf SAMPLE EFFICIENT ACTOR-CRITIC WITH
 EXPERIENCE REPLAY

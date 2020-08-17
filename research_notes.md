@@ -330,4 +330,9 @@ Per the example in google colab, but ill investigate what does mean entropy
 loss, and what does it mean, and how it is implemented here.
 
 Negative loss is ok, but makes a2c perform badly. Lets just focus back at DQN,
-and show that A2C does not really have much sense.
+
+# 16.08.2020
+
+So lets write a paper with DQN, and present how badly a2c performs.
+Maybe first lets to research on reinforcement learning environments and papers.
+Also the idea of using data for reinforcement learning must first expplored.
