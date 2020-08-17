@@ -4,7 +4,7 @@ import numpy as np
 from lartpc_game import data
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.utils import to_categorical
-from networks import categorisation_network
+from reinforcement_learning.networks import categorisation_network
 from lartpc_game.game.dims import neighborhood2d
 from common_configs import ClassicConfConfig
 

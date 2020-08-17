@@ -1,42 +1,11 @@
 ## Research Log:
 
-https://openai.com/blog/emergent-tool-use/ Reading this.
-Should take a look at attention.
-https://arxiv.org/pdf/1909.07528.pdf - next the paper
-Paper:
-
-"intrinsic motivation" - ?? reading http://www.cs.cornell.edu/~helou/IMRL.pdf on this. 
-
-autocurricula - ?? arXiv:1903.00742
-
-
-not read yet:
-https://arxiv.org/pdf/1707.06347.pdf
-
-HIGH-DIMENSIONAL CONTINUOUS CONTROL USING GENERALIZED ADVANTAGE ESTIMATION https://arxiv.org/pdf/1506.02438.pdf
-
-https://arxiv.org/pdf/1707.06347.pdf
-
-
-kinda related maze: https://arxiv.org/pdf/1611.03673.pdf, https://arxiv.org/pdf/1810.02274.pdf
-Must read on multiple objectives: https://arxiv.org/pdf/1809.04474.pdf
-
-
 24.11.2019
 
 I need to implement sample wieght map. Im working on classical convolutions.
 
 ** Sampling distribution of decision ? **
 
-Weighed map;
-
-https://stats.stackexchange.com/questions/284265/understanding-median-frequency-balancing
- |
- V
-https://arxiv.org/pdf/1411.4734.pdf
-also: Kampffmeyer_Semantic_Segmentation_of_CVPR_2016_paper.pdf
-https://stackoverflow.com/questions/42591191/keras-semantic-segmentation-weighted-loss-pixel-map?rq=1
-https://github.com/kwotsin/TensorFlow-ENet/blob/master/get_class_weights.py
 ## Experiments
 
  31.1.02.2019
@@ -50,8 +19,6 @@ https://github.com/kwotsin/TensorFlow-ENet/blob/master/get_class_weights.py
  R2.
  Really nice behaviour. 
  Reducing map iterations to 15->8.
- R3
- Ver interesting. Increasing steps 8->14
  R4
  The problem was that it was going back and forth a lot.
  Steps 14->10
@@ -272,3 +239,100 @@ Trying this model;
 Saw it in replay, "not great, not terrible", its ok to go.
 There is unresolved issue of reading two models:
 (mov+cat) == model and (mov+cat) == target_model --> in actor
+
+#26.02.2020
+
+The joined model after the refactor works, i can experiment with it now.
+The model picking code still needs some attention.
+
+#01.04.2020 
+so the next step is to do A2C agent, which is actually policy gradient based
+also, what you have implemented is DDQN
+
+#16.04.2020
+Working on a2c
+
+#18.04.2020
+Still working on a2c comming from this examples
+https://github.com/flyyufelix/VizDoom-Keras-RL/blob/master/a2c.py
+The important not here is that it learns after each episode.
+I think I read about this being different from dqn, I must check that.
+Yes, this was referenced here, as i thought it means that we don't need multi
+armed bandit.
+
+Ok so, I ne ed to rewrite actions and action factory
+The idea for now to implement is to make so that f.e. action factory would bethe
+only place that creates the actions.
+And that factory is stored within the agent 
+
+Ok, I rewrote ModelAction2D to QAction2D, next step is to create PolicyAction2D
+
+
+
+I am implementing a2c training, the std, normalisation is weird, but i think the
+authour did not know how to comprehend div by 0.
+Anyway, Im going to keep it that way
+
+The previous implementation used trace length equal to one, since there was no
+need to use next steps. Im gonna investigate if its not an error now. (Its not)
+
+# 28.04.2020
+
+So what's left to do is to pick up an architecture for actor and critic.
+Tried to find how A2C is defined in openai baseline https://github.com/openai/baselines
+but the code is really making that hard to pull off
+
+This is bearable but small https://github.com/germain-hug/Deep-RL-Keras
+This is pytorch but seems ok https://github.com/TianhongDai/reinforcement-learning-algorithms/
+
+# 29.04.2020
+
+So it seems that the only difference in learning is that when you use dqn you
+have to use mse.
+In case of actor critic categorical crossentropy is the same as the actual
+learning function.
+I should check if tweaking existing dqn would change it into simple policy gradient.
+Im starting to rewrite train script.
+
+# 30.04.2020
+In order to make that in classic a2c sense, I have to make it so that experience
+is not repeated, and one sars is learned only once.
+Which after short thought, I will not do, instead I will try to learn it
+batches.
+@TODO This is important for the potential paper. It might be that this is A3C
+Whats left is to test this darn thing.
+
+# 05.05.2020
+So the problem is that i have might mistakenly converted with "from_game" action
+method, check that out !
+Runs, now lets find out if it trains at all and fix logging 
+
+# 07.05.2020
+
+# 25.05.2020
+So A2C is showing negative loss, this seems to be because of the negative
+reward.
+BUT, the actor target must be categorical [0.0-1.0]. Im looking for problems
+with negative rewards if tis problem is solved somehow or is it done exactly the same.
+
+# 26.05.2020
+So the pong example shows that the negative reward is present also.
+
+# 08.06.2020
+ https://github.com/pythonlessons/Reinforcement_Learning
+ So i was talking about this example, but openai gym stable baselines has alos
+ an implementation that i can try.
+ https://github.com/hill-a/stable-baselines
+
+Ok so negative loss is ok
+https://stable-baselines.readthedocs.io/en/master/guide/examples.html?highlight=pong#id2
+Per the example in google colab, but ill investigate what does mean entropy
+loss, and what does it mean, and how it is implemented here.
+
+Negative loss is ok, but makes a2c perform badly. Lets just focus back at DQN,
+
+# 16.08.2020
+
+So lets write a paper with DQN, and present how badly a2c performs.
+Maybe first lets to research on reinforcement learning environments and papers.
+Also the idea of using data for reinforcement learning must first expplored.

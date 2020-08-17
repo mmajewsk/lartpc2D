@@ -59,5 +59,6 @@ The movement decision output decides the direction in which the agent should mov
 conda install jupyter conda scipy
 pip install sklearn pandas pandas-datareader matplotlib pillow requests h5py
 pip install --ignore-installed --upgrade tensorflow-gpu 
+pip install keras mlflow
 ```
 

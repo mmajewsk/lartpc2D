@@ -6,33 +6,17 @@ import numpy as np
 from reinforcement_learning.agents import AgentFactory
 from agents.actions import Action2DFactory
 #from viz import  Visualisation
-from common_configs import TrainerA2C, TrainerConfig, ClassicConfConfig
+from common_configs import TrainerConfig, ClassicConfConfig
 from logger import Logger, MLFlowLogger
-
-
-def prepare_game(data_path, config: TrainerConfig, classic_config, network_type='empty'):
-    data_generator = data.LartpcData.from_path(data_path)
-    result_dimensions = 3
-    env = Environment2D(result_dimensions=result_dimensions)
-    env.set_map(*data_generator[3])
-    game = Game2D(env, max_step_number=config.max_step_number)
-    action_factory = Action2DFactory(game.cursor.copy(), categories=result_dimensions)
-    observation_factory = Observation2DFactory(game.cursor.copy(), categories=result_dimensions)
-    agent_factory = AgentFactory(
-        action_factory, observation_factory, config, classic_config
-    )
-    agent_type = config.agent_type
-    agent = agent_factory.get_agent(agent_type, network_type, config)
-    return game, agent, data_generator
-
+from scripts.train import prepare_game
 
 def simple_learn(data_path):
     config = TrainerConfig()
     classic_config = ClassicConfConfig()
-    game, agent, data_generator = prepare_game(data_path, config, network_type=config.network_type, classic_config=classic_config)
+    game, agent_factory, data_generator = prepare_game(data_path, config, network_type=config.network_type, classic_config=classic_config)
+    agent = agent_factory.produce_ddqn(network_type)
     logger = Logger()
-    mlf_logger = MLFlowLogger(config)
-    mlf_logger.start()
+    mlf_logger = MLFlowLogger()
     mlf_logger.log_config(config)
     for iterate_maps in range(config.maps_iterations):
         map_number = np.random.randint(0, len(data_generator))
@@ -52,9 +36,9 @@ def simple_learn(data_path):
             agent.memory.add(trial_run_history)
             iterations.append(trial_run_history.copy())
             if agent.enough_samples_to_learn():
-                h1 = agent.train_agent()
-                logger.add_train_history(h1)
-                mlf_logger.log_history(h1)
+                h = agent.train_agent()
+                logger.add_train_history(h)
+                mlf_logger.log_history(h)
                 agent.target_train()
         logger.game_records(dict(map=map_number, data=iterations))
         mlf_logger.log_game(map_number, iterations)
@@ -66,8 +50,7 @@ def simple_learn(data_path):
 
 
 if __name__ == "__main__":
-    #data_path = 'assets/dump'
+    data_path = 'assets/dump'
     #data_path = '/home/mwm/repositories/content/dump'  # home cluster
-    data_path = '/net/people/plghawker/projects/data/lartpc2d_data/dump'  # home cluster
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)

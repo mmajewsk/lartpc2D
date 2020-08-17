@@ -1,0 +1,143 @@
+#+TITLE: Research
+* Notes
+** Reinforcement learning
+- https://lilianweng.github.io/lil-log/2018/02/19/a-long-peek-into-reinforcement-learning.html#key-concepts
+  key concepts for reinforcement learning
+
+** Markov...
+- https://en.wikipedia.org/wiki/Markov_decision_process - WMarkov Decision
+  Process: Wikipedia article:
+*Markov Decision Process* A probabilistic process (stochastic), meaning that it
+ describes [S,A,Pa,Ra], such that Pa(s,s')==Pr(St+1=s'|st=s,at=a) probability
+ that action {a}a in state {s}s at time {t}t will lead to state {s'}s' at time {t+1}t+1,
+*Partially observable Markov decision process* is MDP but you cannot observe
+ fully the underlying state
+
+** Curriculum
+links:
+- https://lilianweng.github.io/lil-log/2020/01/29/curriculum-for-reinforcement-learning.html
+  Curriculum for Reinforcement Learning - best blogpost
+*By Wikipedia: Curriculum* DescriptionIn education, a curriculum is broadly
+ defined as the totality of student experiences that
+*Curriculum in RL* means setting up task in order i.e. more and more difficult, so
+ this means that
+*anit-curriculum* means easier and easier tasks
+Usually some worse model is used to asses the curriculum
+*Teacher-Guided Curriculum* So two kinda agents, teacher and student, teacher
+ learns how to pick a task for the student, so that the student learns better
+*Curriculum through Self-Play* This means that agents are playing between
+ themselves to achieve ever growing difficulty of curriculum
+
+** Emergence and Autocurricula
+Links:
+ - https://openai.com/blog/emergent-tool-use/ - Openai Hide and seek
+ - https://arxiv.org/pdf/1903.00742.pdf - "Autocurricula and the Emergence
+   of Innovation from Social Interaction: A Manifesto for Multi-Agent
+   Intelligence Research" general description of autocurricula
+ - https://arxiv.org/pdf/1909.07528.pdf - "emergent tool use from multi-agent
+autocurricula"  openai Hide and seek paper
+*Emergence* - when strategies develop on their own with the RL
+*Autocurricula* - the process where strategies are emerging
+
+** A2C - Actor Critic methods
+Links:
+- https://hackernoon.com/intuitive-rl-intro-to-advantage-actor-critic-a2c-4ff545978752
+that one cartoon with a fox
+- https://papers.nips.cc/paper/1786-actor-critic-algorithms.pdf - the paper of actor-critic
+- https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f -
+  really good article presentic advantage A2C along a solution fort cartpole
+*Actor - Critic*
+There are two networks, one estimates a value response from the network, the other
+
+** ACKTR - Actor Critic using Kronecker-Factored Trust Region (ACKTR)
+- https://stable-baselines.readthedocs.io/en/master/modules/acktr.html
+variation on a2c, possibly better
+** Deep Reinforcement learning
+-https://jerrybai1995.github.io/asset/doom/doom_report_final.pdf that doom paper
+-https://github.com/flyyufelix/VizDoom-Keras-RL that doom repo
+-https://towardsdatascience.com/reinforcement-learning-w-keras-openai-dqns-1eed3a5338c
+-https://towardsdatascience.com/cartpole-introduction-to-reinforcement-learning-ed0eb5b58288
+that cartpole example
+
+** MCTS - Monte Carlo Tree Search
+- https://pl.wikipedia.org/wiki/Monte-Carlo_Tree_Search
+This is probably the best explanation.
+Start at root tree of decision.
+Select nodes at random.
+If you find leaf, make a simulation.
+Update the count of win/loses at each node.
+Repeat until some constraint.
+Pick next action based on some criteria.
+
+** Deep Recurent Q-Networks
+- https://arxiv.org/pdf/1507.06527.pdf DRQN
+
+** Normalization of the rewards
+- https://medium.com/@thechrisyoon/deriving-policy-gradients-and-implementing-reinforce-f887949bd63 -
+this is about implementing REINFORCE, but there is quote from Karpathy about
+normalisation.
+#+NAME: karpathy
+- http://karpathy.github.io/2016/05/31/rl/ - the source of the quote
+- https://arxiv.org/abs/1506.02438 - referenced source of the normalisation
+
+** Stochastic Policy
+*Stochastic* having a random probability distribution or pattern that may be
+analysed statistically but may not be predicted precisely.
+** Temporal Difference
+- https://medium.com/@violante.andre/simple-reinforcement-learning-temporal-difference-learning-e883ea0d65b0
+
+** Weighed map - mean frequency balancing
+- https://stats.stackexchange.com/questions/284265/understanding-median-frequency-balancing
+- https://arxiv.org/pdf/1411.4734.pdf
+- also: Kampffmeyer_Semantic_Segmentation_of_CVPR_2016_paper.pdf
+- https://stackoverflow.com/questions/42591191/keras-semantic-segmentation-weighted-loss-pixel-map?rq=1
+- https://github.com/kwotsin/TensorFlow-ENet/blob/master/get_class_weights.py
+This was employed in the code training categorisation.
+
+** Multi-task learning
+- https://ruder.io/multi-task/ a good short overview
+** AlphaGo Zero
+Uses MCTS to traing policy and value network.
+** Search for Multi-task reinforcement learning
+*** https://arxiv.org/pdf/1901.08162.pdf not fully read this focuses on meta learning and casual reasoning
+*** https://openreview.net/pdf?id=rkgpv2VFvr not fully read but kind of theoritical
+
+* To read
+What to read [1/12]:
+- [ ] [[karpathy]]'s text on reinforcement
+- [ ] "intrinsic motivation" - ?? reading http://www.cs.cornell.edu/~helou/IMRL.pdf on this.
+- [ ] "Proximal Policy Optimization Algorithms" https://arxiv.org/pdf/1707.06347.pdf
+- [ ] HIGH-DIMENSIONAL CONTINUOUS CONTROL USING GENERALIZED ADVANTAGE ESTIMATION https://arxiv.org/pdf/1506.02438.pdf
+- [ ] kinda related maze: "LEARNING TO NAVIGATE
+IN COMPLEX ENVIRONMENTS" https://arxiv.org/pdf/1611.03673.pdf,
+- [ ] EPISODIC CURIOSITY THROUGH REACHABILITY https://arxiv.org/pdf/1810.02274.pdf
+- [ ] Must read on multiple objectives: "Multi-task Deep Reinforcement Learning with PopArt" https://arxiv.org/pdf/1809.04474.pdf
+- [ ] c51 agent?
+- [ ] AlphaGo: https://www.nature.com/articles/natur...
+- [X] AlphaGo Zero: https://www.nature.com/articles/natur...
+- [ ] AlphaZero: https://arxiv.org/abs/1712.01815
+- [ ] MuZero: https://arxiv.org/abs/1911.08265
+- [ ] Osim rl https://arxiv.org/pdf/1711.06922.pdf
+- [ ] vizdoom paper https://arxiv.org/pdf/1605.02097.pdf
+
+** ACER
+https://arxiv.org/pdf/1611.01224.pdf SAMPLE EFFICIENT ACTOR-CRITIC WITH
+EXPERIENCE REPLAY
+
+* Ideas
+- Cooperative approach
+- Sampling distribution of decision ?
+
+* Simmilar:
+- https://icml.cc/2012/papers/101.pdf Artist agent That drawing work
+- https://www.ijcai.org/Proceedings/15/Papers/359.pdfStroke-Based Stylization
+  Learning and Rendering with Inverse Reinforcement Learning
+- https://openreview.net/forum?id=SkgC6TNFvr Reinforced active learning for image segmentation
+- https://rss16-representations.mit.edu/papers/BeyondGeometryRSSW16_9_CameraReadySubmission_Reza.pdf
+  Reinforcement Learning for Semantic Segmentation
+- https://www.ai.rug.nl/~mwiering/GROUP/ARTICLES/rl_classification.pdf that one
+  is close in Indoor Scenes
+- https://workshops.aapr.at/wp-content/uploads/2019/05/ARW-OAGM19_30.pdf the only trully similar from the title
+- https://openreview.net/pdf?id=rkgpv2VFvr SHARING KNOWLEDGE IN MULTI-TASK
+DEEP REINFORCEMENT LEARNING
+* Paste box
