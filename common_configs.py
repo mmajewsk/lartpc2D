@@ -3,7 +3,7 @@ from dataclasses import  dataclass
 @dataclass
 class TrainerConfig:
     max_step_number : int = 12
-    batch_size : int = 128
+    batch_size : int =256
     maps_iterations: int = 4000
     trials: int = 8
     trace_length: int = 1
@@ -12,7 +12,7 @@ class TrainerConfig:
     epsilon_decay: float = 0.9987
     epsilon_min: float = 0.5
     conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
-    movement_model_path: str = "mlruns/0/b43f6d400f904918a679401d08045577/artifacts/target_models/data/model.h5"
+    movement_model_path: str = "mlruns2/0/b43f6d400f904918a679401d08045577/artifacts/target_models/data/model.h5"
     conv_trainable: bool = False
     mov_trainable: bool= True
     network_type: str ='read_both'
