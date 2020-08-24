@@ -35,7 +35,7 @@ def simple_learn(data_path):
     mlf_logger.start()
     mlf_logger.log_config(config)
     for iterate_maps in range(config.maps_iterations):
-        map_number = np.random.randint(0, len(data_generator))
+        map_number = np.random.randint(1000, len(data_generator))
         game.env.set_map(*data_generator[map_number])
         iterations = []
         for iterate_tries in range(config.trials):

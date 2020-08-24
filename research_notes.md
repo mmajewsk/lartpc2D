@@ -336,3 +336,11 @@ Negative loss is ok, but makes a2c perform badly. Lets just focus back at DQN,
 So lets write a paper with DQN, and present how badly a2c performs.
 Maybe first lets to research on reinforcement learning environments and papers.
 Also the idea of using data for reinforcement learning must first expplored.
+
+# 17.08.2020 
+extra layers aremissing
+they were added in this commit e1dc7d24198659213b820a93a6d084968d5c54a0
+
+# 24.08.2020
+
+Last commit before pytorch
