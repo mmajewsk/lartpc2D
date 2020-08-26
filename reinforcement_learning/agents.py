@@ -1,8 +1,8 @@
 import numpy as np
 from pathlib import  Path
 from agents.actions import Action2DFactory, GameAction2D, QAction2D, PolicyAction
-from agents.base_agents import BaseAgent, BaseMemoryAgent, SquashedTraceBuffer, ExperienceBuffer
-from agents.base_agents import NoRepeatExperienceBuffer
+from agents.environment import BaseAgent, BaseMemoryAgent, SquashedTraceBuffer, ExperienceBuffer
+from agents.environment import NoRepeatExperienceBuffer
 from agents.states import GameVisibleState2D
 from agents.observations import GameObservation2D, Observation2DFactory
 from reinforcement_learning.misc import Epsilon
