@@ -1,5 +1,6 @@
 import sys
 sys.path.append("..")
+from pathlib import Path
 import pytorch_lightning as pl
 from classic_conv_torch import batch_generator
 from lartpc_game.data import LartpcData
@@ -9,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+
 
 class CatLt(pl.LightningModule):
 
@@ -32,6 +34,7 @@ class CatLt(pl.LightningModule):
         self.b4 = nn.BatchNorm1d(dense_size)
         self.d4 = nn.Dropout(p=self.dropout_rate)
 
+
         self.l5 = nn.Linear(dense_size, out_features=result_feature_size)
 
 
@@ -51,21 +54,32 @@ class CatLt(pl.LightningModule):
         return x
 
     def configure_optimizers(self):
-        optimizer = optim.SGD(self.parameters(),lr=0.00001, weight_decay=0.999999, momentum=0.9, nesterov=True)
-        return optimizer
+        optimizer = optim.SGD(self.parameters(),lr=0.00001, momentum=0.9, nesterov=True)
+        gamma=1e-6
+        time_decay = lambda x: 1/(1+gamma*x)
+        my_lr_scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=time_decay)
+        return [optimizer], [my_lr_scheduler]
+
+    def make_metrics(self, outputs, labels):
+        oh_labels = pl.metrics.functional.to_onehot(labels, num_classes=3)
+        oh_labels = oh_labels.type(torch.float)
+        mse = pl.metrics.functional.mse(outputs, oh_labels)
+        cat_outputs = pl.metrics.functional.to_categorical(outputs)
+        acc = pl.metrics.functional.accuracy(cat_outputs, labels)
+        return mse, acc
 
     def training_step(self, batch, batch_idx):
         inputs, labels, weights = batch
         outputs = self(inputs)
         loss = F.cross_entropy(outputs, labels, weights)
         result = pl.TrainResult(loss)
-        result.log('train_loss', loss, prog_bar=True)
-        oh_labels = pl.metrics.functional.to_onehot(labels, num_classes=3)
-        oh_labels = oh_labels.type(torch.float)
-        mse = pl.metrics.functional.mse(outputs, oh_labels)
-        acc = pl.metrics.functional.accuracy(outputs, oh_labels)
-        result.log('train_mse', mse)#, on_step=False, on_epoch=True)
-        result.log('train_acc', acc)#, on_step=False, on_epoch=True)
+        mse, acc = self.make_metrics(outputs, labels)
+        result.log('train_loss', loss)
+        result.log('train_mse', mse)
+        result.log('train_acc', acc)
+        result.log('train_loss_epoch', loss, on_step=False, on_epoch=True, reduce_fx=torch.mean)
+        result.log('train_mse_epoch', mse, on_step=False, on_epoch=True, reduce_fx=torch.mean)
+        result.log('train_acc_epoch', acc, on_step=False, on_epoch=True, reduce_fx=torch.mean)
         return result
 
     def validation_step(self, batch, batch_idx):
@@ -73,13 +87,13 @@ class CatLt(pl.LightningModule):
         outputs = self(inputs)
         loss = F.cross_entropy(outputs, labels, weights)
         result = pl.EvalResult(checkpoint_on=loss)
+        mse, acc = self.make_metrics(outputs, labels)
         result.log('val_loss', loss)
-        oh_labels = pl.metrics.functional.to_onehot(labels, num_classes=3)
-        oh_labels = oh_labels.type(torch.float)
-        mse = pl.metrics.functional.mse(outputs, oh_labels)
-        acc = pl.metrics.functional.accuracy(outputs, oh_labels)
-        result.log('train_mse', mse, on_step=False, on_epoch=True)
-        result.log('train_acc', acc, on_step=False, on_epoch=True)
+        result.log('val_mse', mse)
+        result.log('val_acc', acc)
+        result.log('val_loss_epoch', loss, on_step=False, on_epoch=True, reduce_fx=torch.mean)
+        result.log('val_mse_epoch', mse, on_step=False, on_epoch=True, reduce_fx=torch.mean)
+        result.log('val_acc_epoch', acc, on_step=False, on_epoch=True, reduce_fx=torch.mean)
         return result
 
 
@@ -114,8 +128,33 @@ class  LartpcGenData(torch.utils.data.Dataset):
 
 class SavingCallback(pl.Callback):
     def on_epoch_end(self, trainer, pl_module):
+        tt_logger = trainer.logger
+        checkpoint_dir = (Path(tt_logger.experiment.log_dir) / "checkpoints")
         if pl_module.current_epoch%30 == 0:
-            trainer.save_checkpoint("{}_checkpoint.ckpt".format(pl_module.current_epoch))
+            checkpoint_path = checkpoint_dir/"{}_checkpoint.ckpt".format(pl_module.current_epoch)
+            trainer.save_checkpoint(str(checkpoint_path))
+
+# class EpochsMeanCallback(pl.Callback):
+#     def __init__(self, metric_name, *args, **kwargs):
+#         pl.Callback.__init__(*args, **kwargs)
+#         self.metric_name = metric_name
+#         self.metric_list = []
+
+#     def add(self, trainer, pl_module):
+#         self.metric_list.append(self.trainer.callback_metrics[self.metric_name])
+
+#     def reset(self):
+#         self.metric_list = []
+
+#     def apply(self, fun):
+#         return fun(self.metric_list)
+
+#     def on_epoch_end(self, trainer, pl_module):
+#         trainer.logger.log()
+
+# class EMCTrain(EpochsMeanCallback):
+#     def on_train_end(self, trainer, pl_module):
+#         self.add(trainer, pl_module)
 
 
 
@@ -135,5 +174,11 @@ if __name__ == "__main__":
     net = CatLt(network_config.dense_size, network_config.dropout_rate, 3)
     epochs=300
     gpus = int(torch.cuda.is_available())
-    trainer = pl.Trainer(gpus=gpus, min_epochs=4, max_epochs=epochs, callbacks=[SavingCallback()])
+    callbacks = [SavingCallback()]
+    trainer = pl.Trainer(
+        gpus=gpus,
+        min_epochs=4,
+        max_epochs=epochs,
+        callbacks=callbacks
+    )
     trainer.fit(net, td, vd)
