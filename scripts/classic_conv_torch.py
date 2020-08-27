@@ -138,17 +138,18 @@ class CategorisationNetTorch(nn.Module):
         x = self.d4(x)
 
         x = torch.sigmoid(self.l5(x))
+        return x
 
 class LartpcDataset(torch.utils.data.Dataset, data.LartpcData):
     def __init__(self, source_list, target_list):
         torch.utils.data.Dataset.__init__(self)
-        data.LartpcData.__init__(source_list, target_list)
+        data.LartpcData.__init__(self, source_list, target_list)
 
 
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm, trange
-if name == "__main__":
+if __name__ == "__main__":
     epochs=300
     steps_per_epoch=200
 
@@ -183,7 +184,6 @@ if name == "__main__":
             inputs = torch.from_numpy(inputs_)
             labels = torch.from_numpy(labels_)
 
-            optimizer.zero_grad()
             inputs = inputs.to(device)
             labels = labels.to(device)
             outputs = net(inputs)
