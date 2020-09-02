@@ -9,7 +9,7 @@ import numpy as np
 from lartpc_game import data
 from common_configs import ClassicConfConfig
 from lartpc_game.game.dims import neighborhood2d
-from lartpc_game.environment.tools import to_categorical_
+from lartpc_game.agents.tools import to_categorical_
 
 
 def add_neighbours(ind_x, ind_y, mix=True):

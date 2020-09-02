@@ -2,7 +2,7 @@ import sys
 sys.path.append("..")
 from pathlib import Path
 import pytorch_lightning as pl
-from classic_conv_torch import batch_generator
+from scripts.classic_conv_torch import batch_generator
 from lartpc_game.data import LartpcData
 from common_configs import ClassicConfConfig
 import numpy as np
