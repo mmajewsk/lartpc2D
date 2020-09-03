@@ -8,7 +8,8 @@ class TrainerConfig:
     trials: int = 8
     trace_length: int = 1
     gamma: float = 0.8
-    epsilon_initial_value = 1.0
+    # epsilon_initial_value = 1.0
+    epsilon_initial_value = 0.5
     epsilon_decay: float = 0.9987
     epsilon_min: float = 0.5
     conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"

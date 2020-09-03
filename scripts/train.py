@@ -1,10 +1,10 @@
-from game.game import Environment2D, Game2D
+from game.game import Detector2D, Lartpc2D
 from pathlib import Path
-from agents.observations import Observation2DFactory
+from agents.observations import Observation2DSettings
 import data
 import numpy as np
 from reinforcement_learning.agents import AgentFactory
-from agents.actions import Action2DFactory
+from agents.settings import Action2DSettings
 #from viz import  Visualisation
 from common_configs import TrainerA2C, TrainerConfig, ClassicConfConfig
 from logger import Logger, MLFlowLogger
@@ -13,13 +13,13 @@ from logger import Logger, MLFlowLogger
 def prepare_game(data_path, config: TrainerConfig, classic_config, network_type='empty'):
     data_generator = data.LartpcData.from_path(data_path)
     result_dimensions = 3
-    env = Environment2D(result_dimensions=result_dimensions)
-    env.set_map(*data_generator[3])
-    game = Game2D(env, max_step_number=config.max_step_number)
-    action_factory = Action2DFactory(game.cursor.copy(), categories=result_dimensions)
-    observation_factory = Observation2DFactory(game.cursor.copy(), categories=result_dimensions)
+    env = Detector2D(result_dimensions=result_dimensions)
+    env.set_maps(*data_generator[3])
+    game = Lartpc2D(env, max_step_number=config.max_step_number)
+    action_settings = Action2DSettings(game.cursor.copy(), categories=result_dimensions)
+    observation_settings = Observation2DSettings(game.cursor.copy(), categories=result_dimensions)
     agent_factory = AgentFactory(
-        action_factory, observation_factory, config, classic_config
+        action_settings, observation_settings, config, classic_config
     )
     agent_type = config.agent_type
     agent = agent_factory.get_agent(agent_type, network_type, config)
@@ -36,7 +36,7 @@ def simple_learn(data_path):
     mlf_logger.log_config(config)
     for iterate_maps in range(config.maps_iterations):
         map_number = np.random.randint(1000, len(data_generator))
-        game.env.set_map(*data_generator[map_number])
+        game.detector.set_maps(*data_generator[map_number])
         iterations = []
         for iterate_tries in range(config.trials):
             game.start()
@@ -44,7 +44,7 @@ def simple_learn(data_path):
             for model_run_iteration in range(game.max_step_number):
                 current_state = game.get_state()
                 model_action = agent.create_action(current_state.obs)
-                game_action = model_action.to_game_aciton(agent.action_factory)
+                game_action = model_action.to_game_aciton(agent.action_settings)
                 new_state = game.step(game_action)
                 trial_run_history.append((current_state, game_action, new_state))
                 if new_state.done:

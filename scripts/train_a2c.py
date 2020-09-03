@@ -1,10 +1,10 @@
-from game.game import Environment2D, Game2D
+from game.game import Detector2D, Lartpc2D
 from pathlib import Path
-from agents.observations import Observation2DFactory
+from agents.observations import Observation2DSettings
 import data
 import numpy as np
 from reinforcement_learning.agents import AgentFactory
-from agents.actions import Action2DFactory
+from agents.actions import Action2DSettings
 #from viz import  Visualisation
 from common_configs import TrainerConfig, ClassicConfConfig
 from logger import Logger, MLFlowLogger
@@ -20,7 +20,7 @@ def simple_learn(data_path):
     mlf_logger.log_config(config)
     for iterate_maps in range(config.maps_iterations):
         map_number = np.random.randint(0, len(data_generator))
-        game.env.set_map(*data_generator[map_number])
+        game.detector.set_maps(*data_generator[map_number])
         iterations = []
         for iterate_tries in range(config.trials):
             game.start()
@@ -28,7 +28,7 @@ def simple_learn(data_path):
             for model_run_iteration in range(game.max_step_number):
                 current_state = game.get_state()
                 model_action = agent.create_action(current_state.obs)
-                game_action = model_action.to_game_aciton(agent.action_factory)
+                game_action = model_action.to_game_aciton(agent.action_settings)
                 new_state = game.step(game_action)
                 trial_run_history.append((current_state, game_action, new_state))
                 if new_state.done:

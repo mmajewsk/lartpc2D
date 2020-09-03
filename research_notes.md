@@ -412,3 +412,16 @@ Plus insalling pytorch like this in new conda env:
 ```
 conda install pytorch torchvision -c pytorch
 ```
+
+# 28.08.2020
+
+https://medium.com/@unnatsingh/deep-q-network-with-pytorch-d1ca6f40bfda
+
+# 31.08.2020
+
+So it seems that what i have to do is:
+- refactor the environment and make it compatible with openai
+- make some kind of trainer object to choose different options for training 
+
+Here is nice guide on how to do RL in PL.
+https://towardsdatascience.com/en-lightning-reinforcement-learning-a155c217c3de

@@ -1,6 +1,6 @@
 import pickle
 import tempfile
-import tensorflow as tf
+# import tensorflow as tf
 import mlflow
 import git
 import datetime as dt
@@ -24,7 +24,7 @@ class Logger:
         self.outputfilename = 'assets/plots/{}_{}.png'.format(dt.datetime.now().strftime('%Y%m%d%H%M%S'), sha)
 
     def add_train_history(self, th):
-        self.train_hist.append(th.history)
+        self.train_hist.append(th)
 
     def game_records(self,record):
         self.records.append(record)
@@ -53,13 +53,8 @@ class MLFlowLogger:
     def log_config(self, config: TrainerConfig):
         mlflow.log_params(dataclasses.asdict(config))
 
-    def log_history(self, hist: tf.keras.callbacks.History):
-        h = hist.history.copy()
-        new_h = {}
-        for k,v in h.items():
-            assert len(v) == 1
-            new_h[k] = v[0]
-        mlflow.log_metrics(new_h)
+    def log_history(self, hist):
+        pass
 
     def log_game(self, map, it):
         data = {'map': map, 'iterations': it}
@@ -71,8 +66,29 @@ class MLFlowLogger:
         os.remove(pkl_path)
 
     def log_model(self, actor):
-        actor.log_mlflow(mlflow)
+        pass
 
     def stop(self):
         mlflow.end_run()
 
+
+# class MLFlowLoggerTF:
+#     def log_history(self, hist: tf.keras.callbacks.History):
+#         h = hist.history.copy()
+#         new_h = {}
+#         for k,v in h.items():
+#             assert len(v) == 1
+#             new_h[k] = v[0]
+#         mlflow.log_metrics(new_h)
+
+#     def log_model(self, actor):
+#         actor.log_mlflow(mlflow)
+
+
+class MLFlowLoggerTorch(MLFlowLogger):
+    def log_history(self, hist):
+        mlflow.log_metrics(hist)
+
+    def log_model(self, actor):
+        mlflow.pytorch.log_model(actor.policy, "policy")
+        mlflow.pytorch.log_model(actor.target, "target")

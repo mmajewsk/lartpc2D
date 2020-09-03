@@ -1,18 +1,4 @@
-import sys
-sys.path.append("..")
-from pathlib import Path
-import pytorch_lightning as pl
-from scripts.classic_conv_torch import batch_generator
-from lartpc_game.data import LartpcData
-from common_configs import ClassicConfConfig
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-
-
-class CatLt(pl.LightningModule):
+class LartpcRL(pl.LightningModule):
 
     def __init__(self, dense_size, dropout_rate, result_feature_size):
         super(CatLt, self).__init__()
@@ -63,7 +49,7 @@ class CatLt(pl.LightningModule):
     def make_metrics(self, outputs, labels):
         oh_labels = pl.metrics.functional.to_onehot(labels, num_classes=3)
         oh_labels = oh_labels.type(torch.float)
-        mse = pl.metrics.functional.mse(outputs, torch.squeeze(oh_labels))
+        mse = pl.metrics.functional.mse(outputs, oh_labels)
         cat_outputs = pl.metrics.functional.to_categorical(outputs)
         acc = pl.metrics.functional.accuracy(cat_outputs, labels)
         return mse, acc

@@ -53,8 +53,8 @@ def produce_shaper(categories):
 
 # MovementNetwork(other_params['dense_size'], other_params['dropout_rate'],
 #
-#fun_cat = fun_cat_produce(self.observation_factory.categories, self.input_parameters['result_feature_size'])
-#result_clip = Lambda(fun_cat, output_shape=produce_shaper(self.observation_factory.categories))(result_in)
+#fun_cat = fun_cat_produce(self.obervation_settings.categories, self.input_parameters['result_feature_size'])
+#result_clip = Lambda(fun_cat, output_shape=produce_shaper(self.obervation_settings.categories))(result_in)
 
 class MovementNetwork(BaseNetwork):
     def __init__(self,
@@ -347,12 +347,12 @@ class CombinedExtraNetwork(CombinedNetwork):
 
 
 class NetworkFactory:
-    def __init__(self, input_parameters, output_parameters, other_params, action_factory, observation_factory, config: TrainerConfig, classic_config: ClassicConfConfig):
+    def __init__(self, input_parameters, output_parameters, other_params, action_settings, obervation_settings, config: TrainerConfig, classic_config: ClassicConfConfig):
         self.input_parameters = input_parameters
         self.output_parameters = output_parameters
         self.other_params = other_params
-        self.action_factory = action_factory
-        self.observation_factory = observation_factory
+        self.action_settings = action_settings
+        self.obervation_settings = obervation_settings
         self.config = config
         self.classic_config = classic_config
 
@@ -361,21 +361,21 @@ class NetworkFactory:
         if network_type=='empty':
             return None
         elif network_type=='movement':
-            mov = MovementValueNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters)
+            mov = MovementValueNetwork(categories=self.obervation_settings.categories, **self.other_params, **self.output_parameters, **self.input_parameters)
             return MovNormalCatRandom(mov=mov)
 
         elif network_type=='read_conv':
             category_network = CategorisationNetwork(self.config.conv_model_path)
-            mov = MovementValueNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters)
+            mov = MovementValueNetwork(categories=self.obervation_settings.categories, **self.other_params, **self.output_parameters, **self.input_parameters)
             return CombinedNetwork(net_a=mov, net_b=category_network, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable)
 
         elif network_type=='read_both':
-            cat = CategorisationNetwork(**asdict(self.classic_config), result_feature_size=self.classic_config.result_output, categories=self.observation_factory.categories)
+            cat = CategorisationNetwork(**asdict(self.classic_config), result_feature_size=self.classic_config.result_output, categories=self.obervation_settings.categories)
             cat.compiled()
             modelload = load_model(self.config.conv_model_path, custom_objects={'tf':tf})
             cat.model.set_weights(modelload.get_weights())
             cat.model.name = 'output_category'
-            mov = MovementValueNetwork(**self.output_parameters, **self.input_parameters, **self.other_params, categories=self.observation_factory.categories)
+            mov = MovementValueNetwork(**self.output_parameters, **self.input_parameters, **self.other_params, categories=self.obervation_settings.categories)
             modelload2 = load_model(self.config.movement_model_path, custom_objects={'tf':tf})
             mov.compiled()
             mov.model.set_weights(modelload2.get_weights())
@@ -383,12 +383,12 @@ class NetworkFactory:
             return CombinedNetwork(net_a=mov, net_b=cat, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable).compiled()
 
         elif network_type=='actor_critic':
-            cat = CategorisationNetwork(**asdict(self.classic_config), result_feature_size=self.classic_config.result_output, categories=self.observation_factory.categories)
+            cat = CategorisationNetwork(**asdict(self.classic_config), result_feature_size=self.classic_config.result_output, categories=self.obervation_settings.categories)
             cat.compiled()
-            mov = MovementPolicyNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
+            mov = MovementPolicyNetwork(categories=self.obervation_settings.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled()
             actor = CombinedNetworkA2C(net_a=mov, net_b=cat, a_trainable=self.config.mov_trainable, b_trainable=self.config.conv_trainable).compiled()
             # this has to be just like movement
-            critic = MovementCriticNetwork(categories=self.observation_factory.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled(name='critic')
+            critic = MovementCriticNetwork(categories=self.obervation_settings.categories, **self.other_params, **self.output_parameters, **self.input_parameters).compiled(name='critic')
             critic.name = 'critic'
             return actor, critic
         elif network_type=='read_combined':
