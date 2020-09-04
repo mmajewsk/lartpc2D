@@ -1,6 +1,7 @@
 import sys
 sys.path.append("..")
 from pathlib import Path
+from pytorch_lightning.loggers import NeptuneLogger, TensorBoardLogger
 import pytorch_lightning as pl
 from scripts.classic_conv_torch import batch_generator
 from lartpc_game.data import LartpcData
@@ -10,6 +11,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import dataclasses
+import os
 
 
 class CatLt(pl.LightningModule):
@@ -128,7 +131,7 @@ class  LartpcGenData(torch.utils.data.Dataset):
 
 class SavingCallback(pl.Callback):
     def on_epoch_end(self, trainer, pl_module):
-        tt_logger = trainer.logger
+        tt_logger = trainer.logger[0]
         checkpoint_dir = (Path(tt_logger.experiment.log_dir) / "checkpoints")
         if pl_module.current_epoch%30 == 0:
             checkpoint_path = checkpoint_dir/"{}_checkpoint.ckpt".format(pl_module.current_epoch)
@@ -174,11 +177,23 @@ if __name__ == "__main__":
     net = CatLt(network_config.dense_size, network_config.dropout_rate, 3)
     epochs=300
     gpus = int(torch.cuda.is_available())
+    neptune_logger = NeptuneLogger(
+        api_key=os.environ['NEPTUNE_API_TOKEN'],
+        experiment_name="conv@{}".format(os.uname()[1]),
+        project_name="mmajewsk/lartpc-conv",  # Optional,
+        params=dataclasses.asdict(network_config),  # Optional,
+    )
     callbacks = [SavingCallback()]
+    default_logger = TensorBoardLogger(
+        save_dir=os.getcwd(),
+        version=1,
+        name='lightning_logs'
+    )
     trainer = pl.Trainer(
         gpus=gpus,
         min_epochs=4,
         max_epochs=epochs,
-        callbacks=callbacks
+        callbacks=callbacks,
+        logger = [default_logger, neptune_logger]
     )
     trainer.fit(net, td, vd)
