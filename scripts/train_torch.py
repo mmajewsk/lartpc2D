@@ -102,7 +102,7 @@ def simple_learn(data_path):
             trial_run_history = []
             for model_run_iteration in range(env.max_step_number):
                 current_state = env.get_state()
-                epsilon__hist.append(agent.epsilon.value)
+                epsilon_hist.append(agent.epsilon.value)
                 model_state = StateToObservables()(current_state.obs)
                 model_state = ToFlat1D()(model_state)
                 model_state_tensor = ToTorchTensorTuple()(model_state)
