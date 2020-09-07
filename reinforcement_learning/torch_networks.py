@@ -63,16 +63,17 @@ class CombinedNetworkTorch(nn.Module):
         mov_output, cat_output = self(*input)
         optimizer = optim.Adam(self.parameters(), lr=0.00001)
         cat_labels_ = pl.metrics.functional.to_categorical(cat_output)
-        mov_loss = F.mse_loss(mov_output, mov_labels)
+        # @TODO this is super unefficient !
+        mov_val = mov_output.max(1).values.unsqueeze(1)
+        mov_loss = F.mse_loss(mov_val, mov_labels)
         cat_loss = F.cross_entropy(cat_output, cat_labels_)
         (mov_loss+cat_loss).backward()
         optimizer.step()
         metrics = self.make_metrics((mov_output, cat_output),(mov_labels, cat_labels))
-        mov_mse, (cat_mse, cat_acc) = metrics
+        cat_mse, cat_acc = metrics
         hist = {
             'mov_loss': mov_loss.item(),
             'cat_loss': cat_loss.item(),
-            'mov_mse': mov_mse.item(),
             'cat_mse': cat_mse.item(),
             'cat_acc': cat_acc.item(),
         }
@@ -80,5 +81,4 @@ class CombinedNetworkTorch(nn.Module):
 
     def make_metrics(self, outputs, labels):
         cat_met = self.cat.make_metrics(outputs[1], labels[1])
-        mov_met = self.mov.make_metrics(outputs[0], labels[0])
-        return mov_met, cat_met
+        return cat_met

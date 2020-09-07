@@ -1,7 +1,8 @@
 import numpy as np
 from pathlib import  Path
 from agents.actions import Action2DSettings, EnvAction2D, QAction2D, PolicyAction
-from agents.base_agents import BaseAgent, BaseMemoryAgent, SquashedTraceBuffer, ExperienceBuffer
+from lartpc_game.agents.agents import BaseAgent
+from reinforcement_learning.game_agents import BaseMemoryAgent, SquashedTraceBuffer, ExperienceBuffer
 from agents.base_agents import NoRepeatExperienceBuffer
 from agents.states import GameVisibleState2D
 from agents.observations import EnvObservation2D, Observation2DSettings

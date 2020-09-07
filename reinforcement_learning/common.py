@@ -1,4 +1,5 @@
-from lartpc_game.agents.agents import BaseAgent, BaseMemoryAgent, ExperienceBuffer
+from lartpc_game.agents.agents import BaseAgent
+from reinforcement_learning.game_agents import BaseMemoryAgent, ExperienceBuffer
 from lartpc_game.game.game_ai import Lartpc2D
 
 class RLAgent(BaseMemoryAgent, BaseAgent):

@@ -5,10 +5,10 @@ class TrainerConfig:
     max_step_number : int = 12
     batch_size : int = 128
     maps_iterations: int = 4000
-    trials: int = 8
+    trials: int = 10
     trace_length: int = 1
     gamma: float = 0.8
-    # epsilon_initial_value = 1.0
+    epsilon_initial_value = 1.0
     epsilon_initial_value = 0.5
     epsilon_decay: float = 0.9987
     epsilon_min: float = 0.5
@@ -16,7 +16,7 @@ class TrainerConfig:
     movement_model_path: str = "mlruns/0/b43f6d400f904918a679401d08045577/artifacts/target_models/data/model.h5"
     conv_trainable: bool = False
     mov_trainable: bool= True
-    agent_type: str ='ddqn'
+    agent_type: str ='torch'
     network_type: str = 'read_both'
     #categorisation_mode = 'network'
     #decision_mode = 'network'

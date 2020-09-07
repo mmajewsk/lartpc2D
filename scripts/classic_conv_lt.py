@@ -132,10 +132,13 @@ class  LartpcGenData(torch.utils.data.Dataset):
 class SavingCallback(pl.Callback):
     def on_epoch_end(self, trainer, pl_module):
         tt_logger = trainer.logger[0]
+        neptune_logger = trainer.logger[1]
         checkpoint_dir = (Path(tt_logger.experiment.log_dir) / "checkpoints")
         if pl_module.current_epoch%30 == 0:
             checkpoint_path = checkpoint_dir/"{}_checkpoint.ckpt".format(pl_module.current_epoch)
             trainer.save_checkpoint(str(checkpoint_path))
+            neptune_logger.experiment.log_artifact(str(checkpoint_path))
+
 
 # class EpochsMeanCallback(pl.Callback):
 #     def __init__(self, metric_name, *args, **kwargs):

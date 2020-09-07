@@ -8,12 +8,15 @@ import numpy as np
 from lartpc_game.agents.settings import Action2DSettings
 #from viz import  Visualisation
 from common_configs import TrainerA2C, TrainerConfig, ClassicConfConfig
-from logger import Logger, MLFlowLoggerTorch
+from logger import Logger, MLFlowLoggerTorch, NeptuneLogger
 
 from reinforcement_learning.torch_agents import TorchAgent, ModelOutputToAction, StateToObservables, ToTorchTensorTuple, ToNumpy, ToFlat1D
 from reinforcement_learning.torch_networks import CombinedNetworkTorch, MovementTorch
 from scripts.classic_conv_lt import CatLt
 from tqdm.auto import tqdm, trange
+import warnings
+
+# warnings.simplefilter("error")
 
 def create_model_params(env: Lartpc2D):
     action_settings = env.action_settings
@@ -40,6 +43,8 @@ def simple_learn(data_path):
     mlf_logger = MLFlowLoggerTorch(config)
     mlf_logger.start()
     mlf_logger.log_config(config)
+    nep_logger = NeptuneLogger(config)
+    nep_logger.start()
     classic_config = ClassicConfConfig()
     data_generator = lartpc_game.data.LartpcData.from_path(data_path)
     result_dimensions = 3
@@ -89,6 +94,8 @@ def simple_learn(data_path):
                 h1 = agent.train_agent()
                 logger.add_train_history(h1)
                 mlf_logger.log_history(h1)
+                nep_logger.log_history(h1)
+                nep_logger.log_metrics('reward', [state.reward for _, _, state in trial_run_history])
                 agent.target_train()
         # logger.game_records(dict(map=map_number, data=iterations))
         # mlf_logger.log_game(map_number, iterations)

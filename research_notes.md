@@ -425,3 +425,7 @@ So it seems that what i have to do is:
 
 Here is nice guide on how to do RL in PL.
 https://towardsdatascience.com/en-lightning-reinforcement-learning-a155c217c3de
+
+# 03.08.2020
+important note, I mixed up learning modes, I need to change how this is actually calculated
+

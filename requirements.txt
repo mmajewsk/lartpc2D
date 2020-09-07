@@ -1,1 +1,5 @@
+gym
 gym-lartpc
+pytorch
+mlflow
+neptune-client

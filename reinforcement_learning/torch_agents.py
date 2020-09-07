@@ -40,7 +40,11 @@ class ToTorchTensorTuple:
     def __call__(self, inp):
         return tuple(torch.from_numpy(i) for i in inp)
 
-class TorchAgent(RLAgent):
+class ToDevice:
+    def __call__(self, inp, device):
+        return tuple(i.to(device) for i in inp)
+
+class GeneralAgent(RLAgent):
     def __init__(
             self,
             env: Lartpc2D,
@@ -71,6 +75,16 @@ class TorchAgent(RLAgent):
         movement_random, put_random= ToTorchTensorTuple()((movement_random, put_random))
         return movement_random, put_random
 
+    def target_train(self, target, policy):
+        for target_param, local_param in zip(target.parameters(),
+                                           policy.parameters()):
+            new_val = self.tau*local_param.data + (1-self.tau)*target_param.data
+            target_param.data.copy_(new_val)
+
+
+class TorchAgent(GeneralAgent):
+
+
     def create_action(self, observation, use_epsilon=True) -> Action2Dai:
         if use_epsilon:
             if self.epsilon.condition():
@@ -85,6 +99,7 @@ class TorchAgent(RLAgent):
         src, canv = model_obs
         with torch.no_grad():
             return self.policy(src,canv)
+        self.policy.train()
 
 
     def set_models(self, target, policy):
@@ -92,10 +107,7 @@ class TorchAgent(RLAgent):
         self.policy = policy
 
     def target_train(self):
-        for target_param, local_param in zip(self.target.parameters(),
-                                           self.policy.parameters()):
-            new_val = self.tau*local_param.data + (1-self.tau)*target_param.data
-            target_param.data.copy_(new_val)
+        GeneralAgent.target_train(self, self.target, self.policy)
 
 
     def iterate_samples_nicely(self, samples):
@@ -107,19 +119,17 @@ class TorchAgent(RLAgent):
             assert isinstance(sample[1], Action2Dai)
             assert isinstance(sample[2], State2Dai)
             for i, data in enumerate(sample):
+
                 # print(i)
                 data.type_check()
 
             yield sample
 
     def add_future_to_samples(self, samples):
-        # @TODO
-        # - check if the corrent action is used in correct places
-        # - check if correct input is fed everywehere
-        # - check if the output is directed correctly
         obs_to_input = lambda x: (x.source,  x.result)
         batched_samples = [[], []]
         batched_targets = [[],[]]
+        # @TODO make this batchable
         for current_state, action, new_state in self.iterate_samples_nicely(samples):
 
             observation = current_state.obs
@@ -129,33 +139,33 @@ class TorchAgent(RLAgent):
             src, canv = ToFlat1D()((src, canv))
             src, canv = ToTorchTensorTuple()((src,canv))
 
-            self.target.eval()
-            with torch.no_grad():
-                # print("Sizes")
-                # print(src.size())
-                # print(canv.size())
-                movement_target, category_target = self.target(src, canv)
             # print(movement_target, category_target)
             if new_state.done:
                 best_movement = np.argmax(action.movement_vector)
-                movement_target[0, best_movement] = new_state.reward
+                target_val = torch.tensor(new_state.reward)
             else:
                 new_obs = StateToObservables()(new_state.obs)
                 new_obs = ToFlat1D()(new_obs)
                 new_obs = ToTorchTensorTuple()(new_obs)
                 self.target.eval()
+                self.policy.eval()
                 with torch.no_grad():
-                    future_movement, predicted_classes  = self.target(*new_obs)
-                best_movement = torch.argmax(future_movement)
-                Q_future = max(future_movement.squeeze())
-                movement_target[0, best_movement] = new_state.reward + Q_future * self.gamma
-                # print(Q_future, best_movement, future_movement, movement_target)
-            batched_targets[0].append(movement_target)
+                    pol_mov, pol_cat = self.policy(*new_obs)
+                    tar_mov, tar_cat  = self.target(*new_obs)
+                    future_pol = pol_mov.detach()
+                    future_val = tar_mov.detach()
+                self.target.train()
+                self.policy.train()
+                best_policy = torch.argmax(future_pol)
+                Q_val = tar_mov[0,best_policy]
+                target_val = new_state.reward + Q_val * self.gamma
+                # print(Q_val, best_policy, target_val)
+            batched_targets[0].append(target_val)
             batched_targets[1].append(torch.from_numpy(current_state.obs.target))
             batched_samples[0].append(src)
             batched_samples[1].append(canv)
-        y_mov = torch.cat(batched_targets[0])
-        y_cat = torch.cat(batched_targets[1])
+        y_mov = torch.tensor(batched_targets[0]).unsqueeze(1)
+        y_ca
         a,b = map(torch.cat, batched_samples)
         # print("="*9)
         # print(a.size())

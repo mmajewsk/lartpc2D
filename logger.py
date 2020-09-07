@@ -11,6 +11,8 @@ from common_configs import ClassicConfConfig, TrainerConfig
 import dataclasses
 from pathlib import Path
 import mlflow.keras
+import neptune
+import os
 
 class Logger:
     def __init__(self):
@@ -42,16 +44,17 @@ class Logger:
             pickle.dump(self, f)
 
 class MLFlowLogger:
+    package = mlflow
     def __init__(self, trainer_config):
-        self.experiment = trainer_config.agent_type
+        self.experiment = "{}@{}".format(trainer_config.agent_type,os.uname()[1])
 
     def start(self):
         #mlflow.set_tracking_uri('file:///home/mwm/repositories/lartpc_remote_pycharm')
-        mlflow.set_experiment(self.experiment)
-        mlflow.start_run()
+        self.package.set_experiment(self.experiment)
+        self.package.start_run()
 
     def log_config(self, config: TrainerConfig):
-        mlflow.log_params(dataclasses.asdict(config))
+        self.package.log_params(dataclasses.asdict(config))
 
     def log_history(self, hist):
         pass
@@ -62,14 +65,40 @@ class MLFlowLogger:
         pkl_path = dirpath/'game_log.pkl'
         with open(pkl_path,'wb') as f:
             pickle.dump(data, f)
-        mlflow.log_artifact(pkl_path)
+        self.package.log_artifact(pkl_path)
         os.remove(pkl_path)
 
     def log_model(self, actor):
         pass
 
     def stop(self):
-        mlflow.end_run()
+        self.package.end_run()
+
+class NeptuneLogger(MLFlowLogger):
+    package = neptune
+
+    def __init__(self, trainer_config):
+        MLFlowLogger.__init__(self, trainer_config)
+        self.params = trainer_config
+        self.package.init(
+            api_token=os.environ['NEPTUNE_API_TOKEN'],
+            project_qualified_name='mmajewsk/lartpc'
+        )
+
+
+    def start(self):
+        self.package.create_experiment(
+            self.experiment,
+            params=dataclasses.asdict(self.params)
+        )
+    def log_metrics(self, name, values):
+        for v in values:
+            self.package.log_metric(name,v)
+
+    def log_history(self, hist):
+        # @TODO this could be more efficient
+        for k,v in hist.items():
+            self.package.log_metric(k,v)
 
 
 # class MLFlowLoggerTF:
@@ -87,8 +116,8 @@ class MLFlowLogger:
 
 class MLFlowLoggerTorch(MLFlowLogger):
     def log_history(self, hist):
-        mlflow.log_metrics(hist)
+        self.package.log_metrics(hist)
 
     def log_model(self, actor):
-        mlflow.pytorch.log_model(actor.policy, "policy")
-        mlflow.pytorch.log_model(actor.target, "target")
+        self.package.pytorch.log_model(actor.policy, "policy")
+        self.package.pytorch.log_model(actor.target, "target")
