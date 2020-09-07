@@ -16,6 +16,7 @@ class TrainerConfig:
     conv_trainable: bool = False
     mov_trainable: bool= True
     agent_type: str ='torch'
+    mov_type: str = None
 
 @dataclass
 class ReplayConfig(TrainerConfig):

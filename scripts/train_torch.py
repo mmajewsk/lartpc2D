@@ -42,9 +42,9 @@ def get_networks(env, config, classic_config, result_dimensions):
     model_settings = create_model_params(env)
     if config.movement_model_path is None:
         if config.mov_type is None:
-            CLS = MovementBinarised
-        elif config.mov_type == 'binarised':
             CLS = MovementTorch
+        elif config.mov_type == 'binarised':
+            CLS = MovementBinarised
         mov_net = CLS(
             source_in_size=model_settings['input_parameters']['source_feature_size'],
             result_in_size=model_settings['input_parameters']['result_feature_size'],
