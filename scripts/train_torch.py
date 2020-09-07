@@ -96,11 +96,13 @@ def simple_learn(data_path):
         map_number = np.random.randint(1000, len(data_generator))
         env.detector.set_maps(*data_generator[map_number])
         iterations = []
+        gamma_hist = []
         for iterate_tries in trange(config.trials):
             env.start()
             trial_run_history = []
             for model_run_iteration in range(env.max_step_number):
                 current_state = env.get_state()
+                gamma_hist.append(agent.epsilon.value)
                 model_state = StateToObservables()(current_state.obs)
                 model_state = ToFlat1D()(model_state)
                 model_state_tensor = ToTorchTensorTuple()(model_state)

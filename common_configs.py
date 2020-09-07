@@ -2,10 +2,10 @@ from dataclasses import  dataclass
 
 @dataclass
 class TrainerConfig:
-    max_step_number : int = 12
+    max_step_number : int = 4
     batch_size : int = 128
     maps_iterations: int = 4000
-    trials: int = 10
+    trials: int = 30
     trace_length: int = 1
     gamma: float = 0.8
     epsilon_initial_value = 1.0
