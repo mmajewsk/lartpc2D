@@ -8,6 +8,7 @@ import numpy as np
 from reinforcement_learning.misc import Epsilon
 
 import torch
+import torchvision
 
 class ToNumpy:
     def __call__(self, output):
@@ -127,13 +128,15 @@ class TorchAgent(GeneralAgent):
             yield sample
 
     def add_future_to_samples(self, samples):
-        obs_to_input = lambda x: (x.source,  x.result)
         batched_samples = [[], []]
         batched_targets = [[],[]]
+        transform_obs_to_input = torchvision.transforms.Compose([
+            StateToObservables(),
+            ToFlat1D(),
+            ToTorchTensorTuple()
+        ])
         # @TODO make this batchable
         for current_state, action, new_state in self.iterate_samples_nicely(samples):
-
-            observation = current_state.obs
             # observation = self.observation_settings.game_to_model_observation()
             # observation_to_predict = self.observation_settings.to_network_input(observation)
             src, canv = StateToObservables()(current_state.obs)
@@ -145,14 +148,13 @@ class TorchAgent(GeneralAgent):
                 best_movement = np.argmax(action.movement_vector)
                 target_val = torch.tensor(new_state.reward)
             else:
-                new_obs = StateToObservables()(new_state.obs)
-                new_obs = ToFlat1D()(new_obs)
-                new_obs = ToTorchTensorTuple()(new_obs)
+                state_input = transform_obs_to_input(current_state.obs)
+                new_state_input =  transform_obs_to_input(new_state.obs)
                 self.target.eval()
                 self.policy.eval()
                 with torch.no_grad():
-                    pol_mov, pol_cat = self.policy(*observation)
-                    tar_mov, tar_cat  = self.target(*new_obs)
+                    pol_mov, pol_cat = self.policy(*state_input)
+                    tar_mov, tar_cat  = self.target(*new_state_input)
                     future_pol = pol_mov.detach()
                     future_val = tar_mov.detach()
                 self.target.train()
