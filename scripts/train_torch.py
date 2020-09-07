@@ -96,13 +96,13 @@ def simple_learn(data_path):
         map_number = np.random.randint(1000, len(data_generator))
         env.detector.set_maps(*data_generator[map_number])
         iterations = []
-        gamma_hist = []
         for iterate_tries in trange(config.trials):
             env.start()
+            epsilon_hist = []
             trial_run_history = []
             for model_run_iteration in range(env.max_step_number):
                 current_state = env.get_state()
-                gamma_hist.append(agent.epsilon.value)
+                epsilon__hist.append(agent.epsilon.value)
                 model_state = StateToObservables()(current_state.obs)
                 model_state = ToFlat1D()(model_state)
                 model_state_tensor = ToTorchTensorTuple()(model_state)
@@ -123,6 +123,7 @@ def simple_learn(data_path):
                 mlf_logger.log_history(h1)
                 nep_logger.log_history(h1)
                 nep_logger.log_metrics('reward', [state.reward for _, _, state in trial_run_history])
+                nep_logger.log_metrics('epsilon', epsilon_hist)
                 agent.target_train()
         # logger.game_records(dict(map=map_number, data=iterations))
         # mlf_logger.log_game(map_number, iterations)
