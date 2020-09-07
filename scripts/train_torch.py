@@ -11,7 +11,7 @@ from common_configs import TrainerA2C, TrainerConfig, ClassicConfConfig
 from logger import Logger, MLFlowLoggerTorch, NeptuneLogger
 
 from reinforcement_learning.torch_agents import TorchAgent, ModelOutputToAction, StateToObservables, ToTorchTensorTuple, ToNumpy, ToFlat1D
-from reinforcement_learning.torch_networks import CombinedNetworkTorch, MovementTorch
+from reinforcement_learning.torch_networks import CombinedNetworkTorch, MovementTorch, MovementBinarised
 from scripts.classic_conv_lt import CatLt
 from tqdm.auto import tqdm, trange
 import warnings
@@ -41,7 +41,11 @@ def create_model_params(env: Lartpc2D):
 def get_networks(env, config, classic_config, result_dimensions):
     model_settings = create_model_params(env)
     if config.movement_model_path is None:
-        mov_net = MovementTorch(
+        if config.mov_type is None:
+            CLS = MovementBinarised
+        elif config.mov_type == 'binarised':
+            CLS = MovementTorch
+        mov_net = CLS(
             source_in_size=model_settings['input_parameters']['source_feature_size'],
             result_in_size=model_settings['input_parameters']['result_feature_size'],
             moves_out_size=model_settings['output_parameters']['possible_moves'],
@@ -120,7 +124,7 @@ def simple_learn(data_path):
 
             agent.memory.add(trial_run_history)
             iterations.append(trial_run_history.copy())
-            if agent.enough_samples_to_learn():
+            if agent.enough_samples_to_learn() and iterate_tries % 2 ==0:
                 h1 = agent.train_agent()
                 logger.add_train_history(h1)
                 mlf_logger.log_history(h1)
