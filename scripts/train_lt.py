@@ -28,6 +28,7 @@ from reinforcement_learning.game_agents import SquashedTraceBuffer
 
 import copy
 from tqdm import trange
+# inspired by https://github.com/PyTorchLightning/pytorch-lightning/blob/master/pl_examples/domain_templates/reinforce_learn_Qnet.py
 
 class RLDataset(IterableDataset):
     """

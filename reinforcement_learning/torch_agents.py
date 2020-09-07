@@ -151,14 +151,14 @@ class TorchAgent(GeneralAgent):
                 self.target.eval()
                 self.policy.eval()
                 with torch.no_grad():
-                    pol_mov, pol_cat = self.policy(*new_obs)
+                    pol_mov, pol_cat = self.policy(*observation)
                     tar_mov, tar_cat  = self.target(*new_obs)
                     future_pol = pol_mov.detach()
                     future_val = tar_mov.detach()
                 self.target.train()
                 self.policy.train()
                 best_policy = torch.argmax(future_pol)
-                Q_val = tar_mov[0,best_policy]
+                Q_val = tar_mov.max(1)[0]
                 target_val = new_state.reward + Q_val * self.gamma
                 # print(Q_val, best_policy, target_val)
             batched_targets[0].append(target_val)
