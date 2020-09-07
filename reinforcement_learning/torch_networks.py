@@ -10,6 +10,8 @@ class MovementTorch(nn.Module):
         nn.Module.__init__(self)
         self.source_in_size = source_in_size
         self.result_in_size = result_in_size
+        self.moves_out_size = moves_out_size
+        self.dense_size = dense_size
         # @TODO cover the binarisation of the input
         input_size = self.source_in_size + self.result_in_size
         self.l1 = nn.Linear(input_size, dense_size)
@@ -45,6 +47,13 @@ class MovementTorch(nn.Module):
         mse = pl.metrics.functional.mse(outputs, labels)
         return mse
 
+class MovementBinarised(MovementTorch):
+
+    def forward(self, source, canvas):
+        source_bin = (source>0)*1.0
+        canvas_bin = (canvas>0)*1.0
+        MovementTorch.forward(source_bin, canvas_bin)
+
 
 class CombinedNetworkTorch(nn.Module):
     def __init__(self, movement, categorisation):
@@ -54,8 +63,8 @@ class CombinedNetworkTorch(nn.Module):
 
 
     def forward(self, src, canv):
-        x2 = self.cat(src)
         x1 = self.mov(src, canv)
+        x2 = self.cat(src)
         return x1, x2
 
     def optimise(self, input, labels):
@@ -82,3 +91,34 @@ class CombinedNetworkTorch(nn.Module):
     def make_metrics(self, outputs, labels):
         cat_met = self.cat.make_metrics(outputs[1], labels[1])
         return cat_met
+
+class CombinedAddedNetwork(CombinedNetworkTorch):
+    def __init__(self, *args, **kwargs):
+        CombinedNetworkTorch.__init__(self, *args, **kwargs)
+        self.combined_input_size = self.mov.moves_out_size + self.cat.out_features
+        self.e_l1 = nn.Linear(self.combined_input_size, self.mov.dense_size)
+        self.e_l2 = nn.Linear(self.mov.dense_size, self.mov.dense_size)
+        self.e_l3 = nn.Linear(self.mov.dense_size, self.mov.moves_out_size)
+        self.e_l4 = nn.Linear(self.mov.dense_size, self.cat.out_features)
+        self.e_d1 = nn.Dropout(p=self.mov.dropout_rate)
+        self.e_d2 = nn.Dropout(p=self.mov.dropout_rate)
+
+
+    def forward(self, src, canv):
+        x1, x2 = CombinedNetworkTorch.forward(src, canv)
+        x = torch.cat((x1, x2),dim=1)
+
+        x = self.e_l1(x)
+        x = self.e_d1(x)
+        x = F.relu(x)
+
+        x = self.e_l2(x)
+        x = self.e_d2(x)
+        x_m = F.relu(x)
+
+        x1 = self.e_l3(x_m)
+        x1 = F.softmax(x1, dim=1)
+
+        x2 = self.e_l4(x_m)
+        x2 = F.sigmoid(x2)
+        return x1, x2

@@ -10,7 +10,7 @@ class TrainerConfig:
     gamma: float = 0.8
     epsilon_initial_value: float = 1.0
     epsilon_decay: float = 0.99987
-    epsilon_min: float = 0.5
+    epsilon_min: float = 0.3
     conv_model_path: str = "lightning_logs/version_1/checkpoints/240_checkpoint.ckpt"
     movement_model_path: str = None
     conv_trainable: bool = False

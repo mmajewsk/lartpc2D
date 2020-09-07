@@ -21,6 +21,7 @@ class CatLt(pl.LightningModule):
         super(CatLt, self).__init__()
         self.dense_size = dense_size
         self.dropout_rate = dropout_rate
+        self.out_features = result_feature_size
         self.l1 = nn.Linear(25, dense_size)
         self.b1 = nn.BatchNorm1d(dense_size)
         self.d1 = nn.Dropout(p=self.dropout_rate)
