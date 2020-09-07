@@ -121,7 +121,8 @@ class TorchAgent(GeneralAgent):
             for i, data in enumerate(sample):
 
                 # print(i)
-                data.type_check()
+                # data.type_check()
+                pass
 
             yield sample
 
@@ -165,7 +166,7 @@ class TorchAgent(GeneralAgent):
             batched_samples[0].append(src)
             batched_samples[1].append(canv)
         y_mov = torch.tensor(batched_targets[0]).unsqueeze(1)
-        y_ca
+        y_cat = torch.cat(batched_targets[1])
         a,b = map(torch.cat, batched_samples)
         # print("="*9)
         # print(a.size())

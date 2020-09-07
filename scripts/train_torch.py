@@ -16,6 +16,8 @@ from scripts.classic_conv_lt import CatLt
 from tqdm.auto import tqdm, trange
 import warnings
 
+import torch
+
 # warnings.simplefilter("error")
 
 def create_model_params(env: Lartpc2D):
@@ -36,6 +38,41 @@ def create_model_params(env: Lartpc2D):
     )
     return model_params
 
+def get_networks(env, config, classic_config, result_dimensions):
+    model_settings = create_model_params(env)
+    if config.movement_model_path is None:
+        mov_net = MovementTorch(
+            source_in_size=model_settings['input_parameters']['source_feature_size'],
+            result_in_size=model_settings['input_parameters']['result_feature_size'],
+            moves_out_size=model_settings['output_parameters']['possible_moves'],
+            dense_size = model_settings['other_params']['dense_size'],
+            dropout_rate = model_settings['other_params']['dropout_rate']
+        )
+    else:
+        mov_net = torch.load(config.movement_model_path, map_location=torch.device('cpu'))
+
+
+    cat_net = CatLt(
+        dense_size=classic_config.dense_size,
+        dropout_rate=classic_config.dropout_rate,
+        result_feature_size=result_dimensions
+    )
+    if config.conv_model_path is not None:
+        data = torch.load(
+            config.conv_model_path,
+            map_location=torch.device('cpu')
+        )
+        cat_net.load_state_dict(data['state_dict'])
+    if not config.conv_trainable:
+        for param in cat_net.parameters():
+            param.requires_grad = False
+
+    if not config.mov_trainable:
+        for param in mov_net.parameters():
+            param.requires_grad = False
+    # __import__("pdb").set_trace()
+
+    return mov_net, cat_net
 
 def simple_learn(data_path):
     config = TrainerConfig()
@@ -50,20 +87,8 @@ def simple_learn(data_path):
     result_dimensions = 3
     # @TODO env.set_maps(*data_generator[3])
     env = Lartpc2D(result_dimensions , max_step_number=config.max_step_number)
-    model_settings = create_model_params(env)
     agent = TorchAgent(env)
-    mov_net = MovementTorch(
-        source_in_size=model_settings['input_parameters']['source_feature_size'],
-        result_in_size=model_settings['input_parameters']['result_feature_size'],
-        moves_out_size=model_settings['output_parameters']['possible_moves'],
-        dense_size = model_settings['other_params']['dense_size'],
-        dropout_rate = model_settings['other_params']['dropout_rate']
-    )
-    cat_net = CatLt(
-        dense_size=classic_config.dense_size,
-        dropout_rate=classic_config.dropout_rate,
-        result_feature_size=result_dimensions
-    )
+    mov_net, cat_net = get_networks(env, config,  classic_config, result_dimensions)
     policy = CombinedNetworkTorch(mov_net, cat_net)
     target = CombinedNetworkTorch(copy.deepcopy(mov_net), copy.deepcopy(cat_net))
     agent.set_models(policy, target)

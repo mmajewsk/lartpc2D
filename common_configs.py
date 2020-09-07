@@ -12,16 +12,11 @@ class TrainerConfig:
     epsilon_initial_value = 0.5
     epsilon_decay: float = 0.9987
     epsilon_min: float = 0.5
-    conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
-    movement_model_path: str = "mlruns/0/b43f6d400f904918a679401d08045577/artifacts/target_models/data/model.h5"
+    conv_model_path: str = "lightning_logs/version_1/checkpoints/240_checkpoint.ckpt"
+    movement_model_path: str = None
     conv_trainable: bool = False
     mov_trainable: bool= True
     agent_type: str ='torch'
-    network_type: str = 'read_both'
-    #categorisation_mode = 'network'
-    #decision_mode = 'network'
-    decision_mode: str= 'network'
-    categorisation_mode: str = 'network'
 
 @dataclass
 class ReplayConfig(TrainerConfig):
@@ -48,15 +43,10 @@ class TrainerA2C:
 
 @dataclass
 class ClassicConfConfig:
-    #input_params
     source_feature_size : int = 25
     input_window_size : int = 5
-    #output_params
     output_window_size : int = 1
     result_output : int = 1 * 3
-    # output_window_size : int = 1
-    # result_output : int = 1 * 3
-    #other_params
     dense_size : int = ((25) ** 2)
     dropout_rate : float = 0.0
     batch_size : int = 128
