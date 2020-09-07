@@ -96,9 +96,10 @@ def simple_learn(data_path):
         map_number = np.random.randint(1000, len(data_generator))
         env.detector.set_maps(*data_generator[map_number])
         iterations = []
+        epsilon_hist = []
+        rewards = []
         for iterate_tries in trange(config.trials):
             env.start()
-            epsilon_hist = []
             trial_run_history = []
             for model_run_iteration in range(env.max_step_number):
                 current_state = env.get_state()
@@ -111,10 +112,12 @@ def simple_learn(data_path):
                 game_action = ModelOutputToAction()(model_action, agent.action_settings)
                 # game_action.type_check()
                 new_state = env.step(game_action)
+                rewards.append(new_state.reward)
                 # new_state.type_check()
                 trial_run_history.append((current_state, game_action, new_state))
                 if new_state.done:
                     break
+
             agent.memory.add(trial_run_history)
             iterations.append(trial_run_history.copy())
             if agent.enough_samples_to_learn():
@@ -122,9 +125,9 @@ def simple_learn(data_path):
                 logger.add_train_history(h1)
                 mlf_logger.log_history(h1)
                 nep_logger.log_history(h1)
-                nep_logger.log_metrics('reward', [state.reward for _, _, state in trial_run_history])
-                nep_logger.log_metrics('epsilon', epsilon_hist)
                 agent.target_train()
+        nep_logger.log_metrics('reward', rewards)
+        nep_logger.log_metrics('epsilon', epsilon_hist)
         # logger.game_records(dict(map=map_number, data=iterations))
         # mlf_logger.log_game(map_number, iterations)
         # if agent.enough_samples_to_learn() and iterate_maps%4==0:
