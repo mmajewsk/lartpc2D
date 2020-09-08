@@ -48,6 +48,6 @@ class ClassicConfConfig:
     output_window_size : int = 1
     result_output : int = 1 * 3
     dense_size : int = ((25) ** 2)
-    dropout_rate : float = 0.0
+    dropout_rate : float = 0.3
     batch_size : int = 128
     extended_neighbours : bool = True

@@ -52,7 +52,7 @@ class MovementBinarised(MovementTorch):
     def forward(self, source, canvas):
         source_bin = (source>0)*1.0
         canvas_bin = (canvas>0)*1.0
-        MovementTorch.forward(source_bin, canvas_bin)
+        return MovementTorch.forward(self, source_bin, canvas_bin)
 
 
 class CombinedNetworkTorch(nn.Module):
