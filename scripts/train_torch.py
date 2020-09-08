@@ -11,7 +11,9 @@ from lartpc_game.agents.settings import Action2DSettings
 from common_configs import TrainerA2C, TrainerConfig, ClassicConfConfig
 from logger import Logger, MLFlowLoggerTorch, NeptuneLogger
 
-from reinforcement_learning.torch_agents import TorchAgent, ModelOutputToAction, StateToObservables, ToTorchTensorTuple, ToNumpy, ToFlat1D
+from reinforcement_learning.torch_agents import TorchAgent
+from reinforcement_learning.torch_agents import ModelOutputToAction, StateToObservables, ToTorchTensorTuple
+from reinforcement_learning.torch_agents import ToNumpy, ToFlat1D, ToDevice
 from reinforcement_learning.torch_networks import CombinedNetworkTorch, MovementTorch, MovementBinarised
 from scripts.classic_conv_lt import CatLt
 from tqdm.auto import tqdm, trange
@@ -118,7 +120,9 @@ def simple_learn(data_path):
                 model_state = StateToObservables()(current_state.obs)
                 model_state = ToFlat1D()(model_state)
                 model_state_tensor = ToTorchTensorTuple()(model_state)
+                model_state_tensor = ToDevice(device)(model_state_tensor)
                 model_action = agent.create_action(model_state_tensor)
+                model_action = ToDevice('cpu')(model_action)
                 model_action = ToNumpy()(model_action)
                 game_action = ModelOutputToAction()(model_action, agent.action_settings)
                 # game_action.type_check()
@@ -132,7 +136,7 @@ def simple_learn(data_path):
             agent.memory.add(trial_run_history)
             iterations.append(trial_run_history.copy())
             if agent.enough_samples_to_learn() and iterate_tries % 2 ==0:
-                h1 = agent.train_agent()
+                h1 = agent.train_agent(device)
                 logger.add_train_history(h1)
                 mlf_logger.log_history(h1)
                 nep_logger.log_history(h1)

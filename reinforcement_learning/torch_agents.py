@@ -42,8 +42,11 @@ class ToTorchTensorTuple:
         return tuple(torch.from_numpy(i) for i in inp)
 
 class ToDevice:
-    def __call__(self, inp, device):
-        return tuple(i.to(device) for i in inp)
+    def __init__(self, device):
+        self.device = device
+
+    def __call__(self, inp):
+        return tuple(i.to(self.device) for i in inp)
 
 class GeneralAgent(RLAgent):
     def __init__(
@@ -127,13 +130,14 @@ class TorchAgent(GeneralAgent):
 
             yield sample
 
-    def add_future_to_samples(self, samples):
+    def add_future_to_samples(self, samples, device):
         batched_samples = [[], []]
         batched_targets = [[],[]]
         transform_obs_to_input = torchvision.transforms.Compose([
             StateToObservables(),
             ToFlat1D(),
-            ToTorchTensorTuple()
+            ToTorchTensorTuple(),
+            ToDevice(device),
         ])
         # @TODO make this batchable
         for current_state, action, new_state in self.iterate_samples_nicely(samples):
@@ -170,6 +174,7 @@ class TorchAgent(GeneralAgent):
         y_mov = torch.tensor(batched_targets[0]).unsqueeze(1)
         y_cat = torch.cat(batched_targets[1])
         a,b = map(torch.cat, batched_samples)
+        a,b, y_mov, y_cat = ToDevice(device)((a,b, y_mov, y_cat))
         # print("="*9)
         # print(a.size())
         # print(b.size())
@@ -177,7 +182,7 @@ class TorchAgent(GeneralAgent):
         # print(y_cat.size())
         return [a,b],[y_mov, y_cat]
 
-    def train_agent(self):
+    def train_agent(self, device):
         samples = self.memory.sample(self.batch_size, self.trace_length)
-        batched_samples, batched_targets = self.add_future_to_samples(samples)
+        batched_samples, batched_targets = self.add_future_to_samples(samples, device)
         return self.policy.optimise(batched_samples, batched_targets)
