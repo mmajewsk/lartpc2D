@@ -129,12 +129,15 @@ def simple_learn(data_path):
                 new_state = env.step(game_action)
                 rewards.append(new_state.reward)
                 # new_state.type_check()
-                trial_run_history.append((current_state, game_action, new_state))
+                agent.memory.add(
+                    dataclasses.astuple(current_state),
+                    dataclasses.astuple(game_action),
+                    dataclasses.astuple(new_state)
+                    )
                 if new_state.done:
                     break
 
-            agent.memory.add(trial_run_history)
-            iterations.append(trial_run_history.copy())
+            # iterations.append(trial_run_history.copy())
             if agent.enough_samples_to_learn() and iterate_tries % 2 ==0:
                 h1 = agent.train_agent(device)
                 logger.add_train_history(h1)

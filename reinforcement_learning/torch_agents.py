@@ -1,6 +1,6 @@
 from reinforcement_learning.common import RLAgent
 from lartpc_game.game.game_ai import Lartpc2D
-from lartpc_game.agents.agents import SquashedTraceBuffer, ExperienceBuffer
+from lartpc_game.agents.agents import NoTraceBuffer, ExperienceBuffer
 from lartpc_game.agents.observables import Action2Dai, State2Dai, Observation2Dai
 from common_configs import TrainerConfig
 
@@ -62,7 +62,7 @@ class GeneralAgent(RLAgent):
             env,
             batch_size,
             trace_length,
-            memory = SquashedTraceBuffer(buffer_size=4000),
+            memory = NoTraceBuffer(buffer_size=4000),
         )
         epsilon_kwrgs = dict(
             value=config.epsilon_initial_value,
