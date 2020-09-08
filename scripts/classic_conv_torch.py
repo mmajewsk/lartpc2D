@@ -153,7 +153,7 @@ if __name__ == "__main__":
     epochs=300
     steps_per_epoch=200
 
-    dump_filepath = '../assets/dump'  # home cluster
+    dump_filepath = os.environ['DATA_PATH']# home cluster
     dataset = LartpcDataset.from_path(dump_filepath)
     train_data = dataset.get_range(0,800)
     validation_data = dataset.get_range(800,1000)

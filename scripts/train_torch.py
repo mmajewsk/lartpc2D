@@ -86,6 +86,10 @@ def simple_learn(data_path):
     mlf_logger.log_config(config)
     nep_logger = NeptuneLogger(config)
     nep_logger.start()
+    device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = torch.device(device_str)
+    print("Using device: {} ".format(device))
+    nep_logger.package.append_tag(device_str)
     classic_config = ClassicConfConfig()
     data_generator = lartpc_game.data.LartpcData.from_path(data_path)
     result_dimensions = 3
@@ -93,6 +97,8 @@ def simple_learn(data_path):
     env = Lartpc2D(result_dimensions , max_step_number=config.max_step_number)
     agent = TorchAgent(env)
     mov_net, cat_net = get_networks(env, config,  classic_config, result_dimensions)
+    mov_net.to(device)
+    cat_net.to(device)
     policy = CombinedNetworkTorch(mov_net, cat_net)
     target = CombinedNetworkTorch(copy.deepcopy(mov_net), copy.deepcopy(cat_net))
     agent.set_models(policy, target)

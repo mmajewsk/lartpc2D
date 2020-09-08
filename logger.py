@@ -46,7 +46,9 @@ class Logger:
 class MLFlowLogger:
     package = mlflow
     def __init__(self, trainer_config):
-        self.experiment = "{}@{}".format(trainer_config.agent_type,os.uname()[1])
+        exp_host = os.environ.get('EXPERIMENT_HOST')
+        host = os.uname()[1] if exp_gost is None else exp_host
+        self.experiment = "{}@{}".format(trainer_config.agent_type,host)
 
     def start(self):
         #mlflow.set_tracking_uri('file:///home/mwm/repositories/lartpc_remote_pycharm')
