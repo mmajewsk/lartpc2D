@@ -1,3 +1,4 @@
+import os
 from lartpc_game.game.game_ai import Lartpc2D
 from pathlib import Path
 import copy
@@ -148,7 +149,7 @@ def simple_learn(data_path):
 
 
 if __name__ == "__main__":
-    data_path = '../assets/dump'
+    data_path = os.environ['DATA_PATH']
     #data_path = '/home/mwm/repositories/content/dump'  # home cluster
     #ftest_draw_random_cursor(data_path)
     simple_learn(data_path)
