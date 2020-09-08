@@ -89,7 +89,10 @@ def simple_learn(data_path):
     mlf_logger.log_config(config)
     nep_logger = NeptuneLogger(config)
     nep_logger.start()
-    device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    if config.try_gpu:
+        device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+    else:
+        device_str = "cpu"
     device = torch.device(device_str)
     print("Using device: {} ".format(device))
     nep_logger.package.append_tag(device_str)
