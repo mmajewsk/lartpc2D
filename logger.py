@@ -47,7 +47,7 @@ class MLFlowLogger:
     package = mlflow
     def __init__(self, trainer_config):
         exp_host = os.environ.get('EXPERIMENT_HOST')
-        host = os.uname()[1] if exp_gost is None else exp_host
+        host = os.uname()[1] if exp_host is None else exp_host
         self.experiment = "{}@{}".format(trainer_config.agent_type,host)
 
     def start(self):
