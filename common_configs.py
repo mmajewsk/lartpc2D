@@ -3,11 +3,11 @@ from dataclasses import  dataclass
 @dataclass
 class TrainerConfig:
     max_step_number : int = 4
-    batch_size : int = 128
+    batch_size : int = 512
     maps_iterations: int = 4000
     trials: int = 30
     trace_length: int = 1
-    gamma: float = 0.8
+    gamma: float = 0.4
     epsilon_initial_value: float = 1.0
     epsilon_decay: float = 0.99987
     epsilon_min: float = 0.3

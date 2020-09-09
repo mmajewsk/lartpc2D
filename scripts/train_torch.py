@@ -157,8 +157,8 @@ def simple_learn(data_path):
         nep_logger.log_metrics('reward', rewards)
         nep_logger.log_metrics('epsilon', epsilon_hist)
         if iterate_maps % 30 == 0:
-            nep_logger.log_model(policy)
-            nep_logger.log_model(target)
+            nep_logger.log_model(policy, 'policy')
+            nep_logger.log_model(target, 'target')
         # logger.game_records(dict(map=map_number, data=iterations))
         # mlf_logger.log_game(map_number, iterations)
         # if agent.enough_samples_to_learn() and iterate_maps%4==0:
