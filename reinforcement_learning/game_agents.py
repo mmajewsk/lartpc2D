@@ -107,17 +107,3 @@ class SquashedTraceBuffer(ExperienceBuffer):
         # where 3  stands for [GameVisibleState2D, EnvAction2D, GameVisibleState2D]
         return samples.reshape([samples.shape[0]*samples.shape[1], samples.shape[2]])
 
-class NoTraceBuffer(BaseMemoryBuffer):
-    def __init__(self, buffer_size=1000):
-        self.current_state = collections.deque(maxlen=buffer_size)
-        self.action = collections.deque(maxlen=buffer_size)
-        self.new_state = collections.deque(maxlen=buffer_size)
-
-    def add(self, cur, act, new):
-        self.current_state.append(cur)
-        self.action.append(act)
-        self.new_state.append(new)
-
-    def sample(self, batch_size:int):
-        sampled_episodes = random.sample(self.buffer,batch_size)
-        return sampled_episodes

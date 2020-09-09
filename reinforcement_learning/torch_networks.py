@@ -56,10 +56,12 @@ class MovementBinarised(MovementTorch):
 
 
 class CombinedNetworkTorch(nn.Module):
-    def __init__(self, movement, categorisation):
+    def __init__(self, movement, categorisation, mov_trainable=True, cat_trainable=True):
         nn.Module.__init__(self)
         self.mov = movement
         self.cat = categorisation
+        self.mov_trainable=mov_trainable
+        self.cat_trainable=cat_trainable
 
 
     def forward(self, src, canv):
@@ -67,16 +69,17 @@ class CombinedNetworkTorch(nn.Module):
         x2 = self.cat(src)
         return x1, x2
 
-    def optimise(self, input, labels):
+    def optimise(self, net_output, labels):
         mov_labels, cat_labels = labels
-        mov_output, cat_output = self(*input)
+        mov_output, cat_output = net_output
         optimizer = optim.Adam(self.parameters(), lr=0.00001)
         cat_labels_ = pl.metrics.functional.to_categorical(cat_output)
         # @TODO this is super unefficient !
         mov_val = mov_output.max(1).values.unsqueeze(1)
         mov_loss = F.mse_loss(mov_val, mov_labels)
         cat_loss = F.cross_entropy(cat_output, cat_labels_)
-        (mov_loss+cat_loss).backward()
+        total_loss = mov_loss + cat_loss
+        total_loss.backward()
         optimizer.step()
         metrics = self.make_metrics((mov_output, cat_output),(mov_labels, cat_labels))
         cat_mse, cat_acc = metrics

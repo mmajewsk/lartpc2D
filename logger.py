@@ -8,11 +8,13 @@ from matplotlib import pyplot as plt
 import os
 import binascii
 from common_configs import ClassicConfConfig, TrainerConfig
+import pytorch_lightning as pl
 import dataclasses
 from pathlib import Path
 # import mlflow.keras
 import neptune
 import os
+import torch
 
 class Logger:
     def __init__(self):
@@ -45,10 +47,10 @@ class Logger:
 
 class MLFlowLogger:
     package = mlflow
-    def __init__(self, trainer_config):
+    def __init__(self, params):
         exp_host = os.environ.get('EXPERIMENT_HOST')
-        host = os.uname()[1] if exp_host is None else exp_host
-        self.experiment = "{}@{}".format(trainer_config.agent_type,host)
+        self.host = os.uname()[1] if exp_host is None else exp_host
+        self.experiment = "{}@{}".format(params['agent_type'],self.host)
 
     def start(self):
         #mlflow.set_tracking_uri('file:///home/mwm/repositories/lartpc_remote_pycharm')
@@ -79,9 +81,9 @@ class MLFlowLogger:
 class NeptuneLogger(MLFlowLogger):
     package = neptune
 
-    def __init__(self, trainer_config):
-        MLFlowLogger.__init__(self, trainer_config)
-        self.params = trainer_config
+    def __init__(self, params):
+        MLFlowLogger.__init__(self,params)
+        self.params = params
         self.package.init(
             api_token=os.environ['NEPTUNE_API_TOKEN'],
             project_qualified_name='mmajewsk/lartpc'
@@ -91,8 +93,10 @@ class NeptuneLogger(MLFlowLogger):
     def start(self):
         self.package.create_experiment(
             self.experiment,
-            params=dataclasses.asdict(self.params)
+            params=self.params
         )
+        self.package.append_tag(self.host)
+
     def log_metrics(self, name, values):
         for v in values:
             self.package.log_metric(name,v)
@@ -101,6 +105,11 @@ class NeptuneLogger(MLFlowLogger):
         # @TODO this could be more efficient
         for k,v in hist.items():
             self.package.log_metric(k,v)
+
+    def log_model(self, model):
+        with tempfile.NamedTemporaryFile() as f:
+            torch.save(model, f.name)
+            self.package.log_artifact(f.name)
 
 
 # class MLFlowLoggerTF:
@@ -123,3 +132,26 @@ class MLFlowLoggerTorch(MLFlowLogger):
     def log_model(self, actor):
         self.package.pytorch.log_model(actor.policy, "policy")
         self.package.pytorch.log_model(actor.target, "target")
+
+
+def get_neptune_logger( config, classic_conf, device_str):
+    exp_host = os.environ.get('EXPERIMENT_HOST')
+    host = os.uname()[1] if exp_host is None else exp_host
+    experiment = "{}@{}".format(config.agent_type,host)
+    return NPLogger(
+        api_key=os.environ['NEPTUNE_API_TOKEN'],
+        project_name='mmajewsk/lartpc',
+        experiment_name = experiment,
+        params={**dataclasses.asdict(config), **dataclasses.asdict(classic_conf)},
+        tags=[device_str, host]
+    )
+
+class NPLogger(pl.loggers.neptune.NeptuneLogger):
+    def log_model(self, model):
+        with tempfile.NamedTemporaryFile() as f:
+            torch.save(model, f.name)
+            self.log_artifact(f.name)
+
+    def log_metric_arr(self, name, arr):
+        for v in arr:
+            self.log_metric(name, v)
