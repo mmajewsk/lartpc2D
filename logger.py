@@ -109,7 +109,7 @@ class NeptuneLogger(MLFlowLogger):
     def log_model(self, model, name):
         with tempfile.NamedTemporaryFile() as f:
             torch.save(model, f.name)
-            self.package.log_artifact(f.name, destinaton=name)
+            self.package.log_artifact(f.name, destination=name)
 
 
 # class MLFlowLoggerTF:
