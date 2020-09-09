@@ -17,7 +17,7 @@ class TrainerConfig:
     mov_trainable: bool= True
     agent_type: str ='torch'
     mov_type: str = None
-    try_gpu: bool = False
+    try_gpu: bool = True
 
 @dataclass
 class ReplayConfig(TrainerConfig):

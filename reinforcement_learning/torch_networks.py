@@ -72,7 +72,7 @@ class CombinedNetworkTorch(nn.Module):
     def optimise(self, net_output, labels):
         mov_labels, cat_labels = labels
         mov_output, cat_output = net_output
-        optimizer = optim.Adam(self.parameters(), lr=0.00001)
+        optimizer = optim.SGD(self.parameters(), lr=0.00001, momentum=0.9)
         cat_labels_ = pl.metrics.functional.to_categorical(cat_output)
         # @TODO this is super unefficient !
         mov_val = mov_output.max(1).values.unsqueeze(1)
