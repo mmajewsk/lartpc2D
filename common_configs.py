@@ -1,4 +1,5 @@
 from dataclasses import  dataclass
+from pathlib import Path
 
 @dataclass
 class TrainerConfig:
@@ -21,11 +22,12 @@ class TrainerConfig:
 
 @dataclass
 class ReplayConfig(TrainerConfig):
-    conv_model_path: str = "assets/model_dumps/categorisation/model00000030.h5"
-    movement_model_path: str = "mlruns/0/b43f6d400f904918a679401d08045577/artifacts/target_models/data/model.h5"
+    model_path: Path = Path('/home/mwm/Downloads/neptune_models')
     network_type: str ='read_movement'
     decision_mode: str= 'network'
     categorisation_mode: str = 'random'
+    max_step_number : int = 16
+    trials: int = 300
 
 @dataclass
 class TrainerA2C:

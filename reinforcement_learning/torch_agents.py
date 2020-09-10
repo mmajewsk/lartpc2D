@@ -5,11 +5,11 @@ import torch
 import torchvision
 
 from lartpc_game.game.game_ai import Lartpc2D
-from lartpc_game.agents.agents import BaseMemoryBuffer
 from lartpc_game.agents.observables import Action2Dai, State2Dai, Observation2Dai
 
 
 from reinforcement_learning.misc import Epsilon
+from reinforcement_learning.game_agents import BaseMemoryBuffer
 from reinforcement_learning.common import RLAgent
 from common_configs import TrainerConfig
 
