@@ -39,7 +39,7 @@ class MovementTorch(nn.Module):
         x = F.relu(x)
 
         x = self.l4(x)
-        x = F.softmax(x, dim=1)
+        #x = F.softmax(x, dim=1)
         #@TODO check if thath shouldnt be linear
         return x
 
