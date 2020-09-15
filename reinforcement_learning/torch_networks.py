@@ -16,8 +16,8 @@ class MovementTorch(nn.Module):
         input_size = self.source_in_size + self.result_in_size
         self.l1 = nn.Linear(input_size, dense_size)
         self.d1 = nn.Dropout(p=dropout_rate)
-        self.l2 = nn.Linear(dense_size, dense_size)
-        self.d2 = nn.Dropout(p=dropout_rate)
+        # self.l2 = nn.Linear(dense_size, dense_size)
+        # self.d2 = nn.Dropout(p=dropout_rate)
         self.l3 = nn.Linear(dense_size, dense_size)
         self.d3 = nn.Dropout(p=dropout_rate)
         self.l4 = nn.Linear(dense_size, moves_out_size)
@@ -30,9 +30,9 @@ class MovementTorch(nn.Module):
         x = self.d1(x)
         x = F.relu(x)
 
-        x = self.l2(x)
-        x = self.d2(x)
-        x = F.relu(x)
+        # x = self.l2(x)
+        # x = self.d2(x)
+        # x = F.relu(x)
 
         x = self.l3(x)
         x = self.d3(x)
@@ -72,7 +72,7 @@ class CombinedNetworkTorch(nn.Module):
     def optimise(self, net_output, labels):
         mov_labels, cat_labels = labels
         mov_output, cat_output = net_output
-        optimizer = optim.Adam(self.parameters(), lr=0.00001)
+        optimizer = optim.SGD(self.parameters(), lr=0.0001)
         cat_labels_ = pl.metrics.functional.to_categorical(cat_output)
         # @TODO this is super unefficient !
         mov_val = mov_output.max(1).values.unsqueeze(1)

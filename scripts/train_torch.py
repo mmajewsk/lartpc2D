@@ -37,7 +37,7 @@ def create_model_params(env: Lartpc2D):
     output_parameters= dict(
         possible_moves = action_settings.movement_size, #where it can move
     )
-    other_params = dict(dense_size=32, dropout_rate=0.2)
+    other_params = dict(dense_size=32, dropout_rate=0.4)
     model_params = dict(
         input_parameters=input_parameters,
         output_parameters = output_parameters,

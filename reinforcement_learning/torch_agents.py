@@ -81,7 +81,7 @@ class GeneralAgent(RLAgent):
         self.tau = .225
 
     def create_random_action(self):
-        movement_random = np.random.random(self.action_settings.movement_size).astype(np.float32)[np.newaxis,:]
+        movement_random = np.random.uniform(-100, 100, self.action_settings.movement_size).astype(np.float32)[np.newaxis,:]
         put_random = np.random.random(self.action_settings.put_shape).astype(np.float32)
         movement_random, put_random= ToTorchTensorTuple()((movement_random, put_random))
         return movement_random, put_random

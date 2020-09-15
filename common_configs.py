@@ -4,7 +4,7 @@ from pathlib import Path
 @dataclass
 class TrainerConfig:
     max_step_number : int = 4
-    batch_size : int = 512
+    batch_size : int = 128
     maps_iterations: int = 4000
     trials: int = 30
     trace_length: int = 1
