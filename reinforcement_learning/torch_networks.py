@@ -34,12 +34,12 @@ class MovementTorch(nn.Module):
         # x = self.d2(x)
         # x = F.relu(x)
 
-        x = self.l3(x)
-        x = self.d3(x)
-        x = F.relu(x)
+        # x = self.l3(x)
+        # x = self.d3(x)
+        # x = F.relu(x)
 
         x = self.l4(x)
-        #x = F.softmax(x, dim=1)
+        x = 25*F.tanh(x)+6
         #@TODO check if thath shouldnt be linear
         return x
 
@@ -72,6 +72,7 @@ class CombinedNetworkTorch(nn.Module):
     def optimise(self, net_output, labels):
         mov_labels, cat_labels = labels
         mov_output, cat_output = net_output
+        # optimizer = optim.Adam(self.parameters(), lr=0.0001)
         optimizer = optim.SGD(self.parameters(), lr=0.0001)
         cat_labels_ = pl.metrics.functional.to_categorical(cat_output)
         # @TODO this is super unefficient !
