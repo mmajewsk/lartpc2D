@@ -30,16 +30,16 @@ class MovementTorch(nn.Module):
         x = self.d1(x)
         x = F.relu(x)
 
-        # x = self.l2(x)
-        # x = self.d2(x)
-        # x = F.relu(x)
+        x = self.l2(x)
+        x = self.d2(x)
+        x = F.relu(x)
 
         x = self.l3(x)
         x = self.d3(x)
         x = F.relu(x)
 
         x = self.l4(x)
-        x = 25.*torch.tanh(x)+6.
+        x = torch.tanh(x)
         return x
 
     def make_metrics(self, outputs, labels):
