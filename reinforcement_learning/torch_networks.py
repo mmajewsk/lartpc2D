@@ -16,8 +16,8 @@ class MovementTorch(nn.Module):
         input_size = self.source_in_size + self.result_in_size
         self.l1 = nn.Linear(input_size, dense_size)
         self.d1 = nn.Dropout(p=dropout_rate)
-        # self.l2 = nn.Linear(dense_size, dense_size)
-        # self.d2 = nn.Dropout(p=dropout_rate)
+        self.l2 = nn.Linear(dense_size, dense_size)
+        self.d2 = nn.Dropout(p=dropout_rate)
         self.l3 = nn.Linear(dense_size, dense_size)
         self.d3 = nn.Dropout(p=dropout_rate)
         self.l4 = nn.Linear(dense_size, moves_out_size)
