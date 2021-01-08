@@ -40,7 +40,6 @@ class MovementTorch(nn.Module):
 
         x = self.l4(x)
         x = 25*F.tanh(x)+6
-        #@TODO check if thath shouldnt be linear
         return x
 
     def make_metrics(self, outputs, labels):
