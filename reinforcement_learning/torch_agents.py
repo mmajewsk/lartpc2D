@@ -118,12 +118,10 @@ class NoTraceBuffer(BaseMemoryBuffer):
 class TorchAgent(GeneralAgent):
 
 
-    def create_action(self, observation, use_epsilon=True, use_target=False) -> Action2Dai:
+    def create_action(self, observation, use_epsilon=True) -> Action2Dai:
         if use_epsilon:
             if self.epsilon.condition():
                 return self.create_random_action()
-        if use_target:
-            return self.target_action(observation)
         return self.model_action(observation)
 
     def enough_samples_to_learn(self):
@@ -135,14 +133,6 @@ class TorchAgent(GeneralAgent):
         with torch.no_grad():
             result = self.policy(src,canv)
         self.policy.train()
-        return result
-
-    def target_action(self, model_obs):
-        self.target.eval()
-        src, canv = model_obs
-        with torch.no_grad():
-            result = self.target(src,canv)
-        self.target.train()
         return result
 
 

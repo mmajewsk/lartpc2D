@@ -34,12 +34,12 @@ class MovementTorch(nn.Module):
         # x = self.d2(x)
         # x = F.relu(x)
 
-        x = self.l3(x)
-        x = self.d3(x)
-        x = F.relu(x)
+        # x = self.l3(x)
+        # x = self.d3(x)
+        # x = F.relu(x)
 
         x = self.l4(x)
-        x = 25.*torch.tanh(x)+6.
+        x = 25*F.tanh(x)+6
         return x
 
     def make_metrics(self, outputs, labels):
@@ -71,8 +71,10 @@ class CombinedNetworkTorch(nn.Module):
     def optimise(self, net_output, labels):
         mov_labels, cat_labels = labels
         mov_output, cat_output = net_output
-        optimizer = optim.Adam(self.parameters(), lr=0.0001)
+        # optimizer = optim.Adam(self.parameters(), lr=0.0001)
+        optimizer = optim.SGD(self.parameters(), lr=0.0001)
         cat_labels_ = pl.metrics.functional.to_categorical(cat_output)
+        # @TODO this is super unefficient !
         mov_val = mov_output.max(1).values.unsqueeze(1)
         mov_loss = F.mse_loss(mov_val, mov_labels)
         cat_loss = F.cross_entropy(cat_output, cat_labels_)

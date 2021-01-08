@@ -4,7 +4,7 @@ from pathlib import Path
 @dataclass
 class TrainerConfig:
     max_step_number : int = 4
-    batch_size : int = 128
+    batch_size : int = 512
     maps_iterations: int = 4000
     trials: int = 30
     trace_length: int = 1
@@ -18,7 +18,7 @@ class TrainerConfig:
     mov_trainable: bool= True
     agent_type: str ='torch'
     mov_type: str = None
-    try_gpu: bool = True
+    try_gpu: bool = False
 
 @dataclass
 class ReplayConfig(TrainerConfig):
