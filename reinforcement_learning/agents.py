@@ -1,36 +1,22 @@
 import numpy as np
 from pathlib import  Path
-from agents.actions import Action2DFactory, GameAction2D, QAction2D, PolicyAction
-from agents.base_agents import BaseAgent, BaseMemoryAgent, SquashedTraceBuffer, ExperienceBuffer
+from agents.actions import Action2DSettings, EnvAction2D, QAction2D, PolicyAction
+from lartpc_game.agents.agents import BaseAgent
+from reinforcement_learning.game_agents import BaseMemoryAgent, SquashedTraceBuffer, ExperienceBuffer
 from agents.base_agents import NoRepeatExperienceBuffer
 from agents.states import GameVisibleState2D
-from agents.observations import GameObservation2D, Observation2DFactory
+from agents.observations import EnvObservation2D, Observation2DSettings
+from game.game import Lartpc2D
 from reinforcement_learning.misc import Epsilon
 from reinforcement_learning.networks import NetworkFactory
+from reinforcement_learning.common import RLAgent
 
-class RLAgent(BaseMemoryAgent, BaseAgent):
-    def __init__(
-            self,
-            action_factory: Action2DFactory,
-            observation_factory: Observation2DFactory,
-            batch_size: int,
-            trace_length: int,
-            memory=None
-    ):
-        BaseMemoryAgent.__init__(self)
-        BaseAgent.__init__(self, action_factory, observation_factory)
-        self.memory =  memory if memory is not None else ExperienceBuffer(buffer_size=4000)
-        self.batch_size = batch_size
-        self.trace_length = trace_length
 
 class DDQNAgent(RLAgent):
     def __init__(
             self,
-            action_factory: Action2DFactory,
-            observation_factory: Observation2DFactory,
             epsilon_kwrgs: dict,
-            model,
-            target_model,
+            env: Lartpc2D,
             batch_size: int,
             trace_length: int,
             gamma: float,
@@ -39,15 +25,12 @@ class DDQNAgent(RLAgent):
     ):
         RLAgent.__init__(
             self,
-            action_factory,
-            observation_factory,
+            env,
             batch_size,
             trace_length,
             memory = SquashedTraceBuffer(buffer_size=4000),
         )
         self.epsilon = Epsilon(**epsilon_kwrgs)
-        self.model = model
-        self.target_model = target_model
         self.gamma = gamma
         self.tau = .225
         assert decision_mode in ['network', 'random']
@@ -56,25 +39,29 @@ class DDQNAgent(RLAgent):
         self.categorisation_mode = categorisation_mode
         self._choose_action_creation()
 
-    def create_action(self, state: GameObservation2D, use_epsilon=True) -> QAction2D:
+    def set_models(self, target, policy):
+        self.target = target
+        self.polivy = policy
+
+    def create_action(self, state: EnvObservation2D, use_epsilon=True) -> QAction2D:
         if use_epsilon:
             if self.epsilon.condition():
-                return QAction2D.create_random_action(self.action_factory)
-        model_obs = self.observation_factory.game_to_model_observation(state)
+                return QAction2D.create_random_action(self.action_settings)
+        model_obs = self.observation_settings.game_to_model_observation(state)
         return self.model_action(model_obs)
 
     def _choose_action_creation(self):
         if self.categorisation_mode is 'random' and self.decision_mode is 'random':
-            self.model_action = lambda x: QAction2D.create_random_action(self.action_factory)
+            self.model_action = lambda x: QAction2D.create_random_action(self.action_settings)
         else:
             if self.categorisation_mode is 'network' and self.decision_mode is 'network':
                 post_action = lambda x: x
             elif self.categorisation_mode is 'random':
-                post_action = lambda x: QAction2D.randomise_category(x, self.action_factory)
+                post_action = lambda x: QAction2D.randomise_category(x, self.action_settings)
             elif self.decision_mode is 'random':
-                post_action = lambda x: QAction2D.randomise_movement(x, self.action_factory)
+                post_action = lambda x: QAction2D.randomise_movement(x, self.action_settings)
             def model_response(state) -> QAction2D:
-                observation_to_predict = self.observation_factory.to_network_input(state)
+                observation_to_predict = self.observation_settings.to_network_input(state)
                 response = self.model.model.predict(observation_to_predict)
                 action = QAction2D(*response)
                 return post_action(action)
@@ -98,18 +85,18 @@ class DDQNAgent(RLAgent):
         for sample in samples:
             assert len(sample) == 3
             assert isinstance(sample[0], GameVisibleState2D)
-            assert isinstance(sample[1], GameAction2D)
+            assert isinstance(sample[1], EnvAction2D)
             assert isinstance(sample[2], GameVisibleState2D)
             current_state, action, new_state = sample
             #state, action, reward, new_state, done = sample
-            observation = self.observation_factory.game_to_model_observation(current_state.obs)
-            observation_to_predict = self.observation_factory.to_network_input(observation)
+            observation = self.observation_settings.game_to_model_observation(current_state.obs)
+            observation_to_predict = self.observation_settings.to_network_input(observation)
             movement_target, category_target = self.target_model.model.predict(observation_to_predict)
             movement_target = movement_target.squeeze()
             if new_state.done:
                 movement_target[action.movement_number] = new_state.reward
             else:
-                future_movement, predicted_classes = self.target_model.model.predict(self.observation_factory.to_network_input(observation))
+                future_movement, predicted_classes = self.target_model.model.predict(self.observation_settings.to_network_input(observation))
                 Q_future = max(future_movement.squeeze())
                 movement_target[action.movement_number] = new_state.reward + Q_future * self.gamma
             movement_target_with_future = np.expand_dims(np.expand_dims(movement_target, axis=0), axis=0)
@@ -158,8 +145,8 @@ class DDQNAgent(RLAgent):
 class A2CAgent(RLAgent):
     def __init__(
             self,
-            action_factory: Action2DFactory,
-            observation_factory: Observation2DFactory,
+            action_settings: Action2DSettings,
+            observation_settings: Observation2DSettings,
             batch_size: int,
             trace_length: int,
             gamma: float = 0.99,
@@ -170,8 +157,8 @@ class A2CAgent(RLAgent):
     ):
         RLAgent.__init__(
             self,
-            action_factory,
-            observation_factory,
+            action_settings,
+            observation_settings,
             batch_size,
             trace_length,
             # below is so that there would be no repetition in samples
@@ -205,7 +192,7 @@ class A2CAgent(RLAgent):
         adv_batch = []
         disc_batch = []
         targets_batch = []
-        _to_input = lambda x: self.observation_factory.to_network_input(self.observation_factory.game_to_model_observation(x))
+        _to_input = lambda x: self.observation_settings.to_network_input(self.observation_settings.game_to_model_observation(x))
         for sample_no, sample in enumerate(samples):
             # @TODO check if this is correct (if steps are in correct order)
             rewards = [ episode[2].reward for episode in sample]
@@ -221,9 +208,9 @@ class A2CAgent(RLAgent):
             states_2 = np.concatenate([_to_input(step[0].obs)[1] for step in sample])
             actions = [step[1] for step in sample]
             values = self.model_critic.model.predict([states_1,states_2])
-            #advantages = np.zeros((self.trace_length, self.action_factory.movement_size))
+            #advantages = np.zeros((self.trace_length, self.action_settings.movement_size))
             for i in range(self.trace_length):
-                policy_action = PolicyAction.from_game(actions[i], self.action_factory)
+                policy_action = PolicyAction.from_game(actions[i], self.action_settings)
                 # it coulde be advantage[i][self.actions[i]] = discounted_rewards[i]-values[i], but because policy is already an array,
                 # with only one element equal to zero, we can do it like this:
                 advantage = policy_action.policy * (discounted_rewards[i]-values[i])
@@ -248,9 +235,9 @@ class A2CAgent(RLAgent):
             self.memory.trim_to_trace(self.trace_length)
         return len(self.memory.buffer) >= self.batch_size
 
-    def create_action(self, state: GameObservation2D) -> PolicyAction:
-        model_obs = self.observation_factory.game_to_model_observation(state)
-        observation_to_predict = self.observation_factory.to_network_input(model_obs)
+    def create_action(self, state: EnvObservation2D) -> PolicyAction:
+        model_obs = self.observation_settings.game_to_model_observation(state)
+        observation_to_predict = self.observation_settings.to_network_input(model_obs)
         response = self.model_actor.model.predict(observation_to_predict)
         action = PolicyAction(*response)
         return action
@@ -268,13 +255,13 @@ class A2CAgent(RLAgent):
             self._dump_message = True
         pass
 
-def create_model_params(action_factory, observation_factory):
+def create_model_params(action_settings, observation_settings):
     input_parameters = dict(
         source_feature_size =observation_factory.cursor.region_source_input.basic_block_size, # size of input window
-        result_feature_size = np.prod(observation_factory.result_shape), # this is a space where we
+        result_feature_size = np.prod(observation_settings.result_shape), # this is a space where we
     )
     output_parameters= dict(
-        possible_moves = action_factory.movement_size, #where it can move
+        possible_moves = action_settings.movement_size, #where it can move
     )
     other_params = dict(dense_size=32, dropout_rate=0.2)
     model_params = dict(
@@ -285,35 +272,31 @@ def create_model_params(action_factory, observation_factory):
     return model_params
 
 class AgentFactory:
-    def __init__(self, action_factory, observation_factory, config, classic_config):
-        self.action_factory = action_factory
-        self.observation_factory = observation_factory
+    def __init__(self, action_settings, observation_settings, config, classic_config):
+        self.action_settings = action_settings
+        self.observation_settings = observation_settings
         self.classic_config = classic_config
 
 
     def get_network_builder(self, model_params, config ):
         network_builder = NetworkFactory(
             **model_params,
-            action_factory=self.action_factory,
-            observation_factory=self.observation_factory,
+            action_factory=self.action_settings,
+            observation_factory=self.observation_settings,
             config=config,
             classic_config=self.classic_config
         )
         return network_builder
 
     def produce_ddqn(self, network_type, config) -> DDQNAgent:
-        model_params = create_model_params(self.action_factory, self.observation_factory)
+        model_params = create_model_params(self.action_settings, self.observation_settings)
         network_builder = self.get_network_builder(model_params, config)
         model = network_builder.create_network(network_type)
         target_model = network_builder.create_network(network_type)
-        epsilon_kwrgs = dict(
-            value=config.epsilon_initial_value,
-            decay=config.epsilon_decay,
-            min=config.epsilon_min
-        )
+
         return  DDQNAgent(
-            self.action_factory,
-            self.observation_factory,
+            self.action_settings,
+            self.observation_settings,
             epsilon_kwrgs=epsilon_kwrgs,
             model=model,
             target_model=target_model,
@@ -326,12 +309,12 @@ class AgentFactory:
 
 
     def produce_a2c(self, config):
-        model_params = create_model_params(self.action_factory, self.observation_factory)
+        model_params = create_model_params(self.action_settings, self.observation_settings)
         network_builder = self.get_network_builder(model_params, config)
         actor, critic = network_builder.create_network('actor_critic')
         return A2CAgent(
-            self.action_factory,
-            self.observation_factory,
+            self.action_settings,
+            self.observation_settings,
             batch_size=config.batch_size,
             trace_length=config.trace_length,
             gamma=config.gamma,

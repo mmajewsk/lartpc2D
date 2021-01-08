@@ -1,0 +1,7 @@
+gym
+gym-lartpc
+pytorch
+pytorch-lightning
+sklearn
+mlflow
+neptune-client

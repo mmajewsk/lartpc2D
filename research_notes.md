@@ -344,3 +344,88 @@ they were added in this commit e1dc7d24198659213b820a93a6d084968d5c54a0
 # 24.08.2020
 
 Last commit before pytorch
+The leanring rate decay is different than in keras 
+https://stackoverflow.com/questions/55663375/keras-learning-rate-decay-in-pytorch
+https://pytorch.org/docs/stable/_modules/torch/optim/sgd.html#SGD
+
+So there is a problem, categorical cross entropy for one hot encoding does not exist in pytorch.
+Moreover, this problem changes a lot when scaled to more than one pixel being categorised.
+This become multi-label task, or something like image prediction.
+For now lets use only one pixel, and non one-hot encoding.
+
+# 25.08.2020
+
+Cuda, nvidia drivers reinstallation.
+First install drivers using this 
+
+https://linuxconfig.org/how-to-install-the-nvidia-drivers-on-ubuntu-18-04-bionic-beaver-linux
+
+in my case:
+```
+$ ubuntu-drivers devices
+
+== /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0 ==
+modalias : pci:v000010DEd00001F08sv00001458sd00003FC1bc03sc00i00
+vendor   : NVIDIA Corporation
+driver   : nvidia-driver-418-server - distro non-free
+driver   : nvidia-driver-415 - third-party free
+driver   : nvidia-driver-435 - distro non-free
+driver   : nvidia-driver-440 - distro non-free
+driver   : nvidia-driver-440-server - distro non-free
+driver   : nvidia-driver-450 - third-party free recommended
+driver   : xserver-xorg-video-nouveau - distro free builtin
+
+```
+Ended up installing `nvidia-driver-450`
+
+```
+$ nvidia-smi
+
+Tue Aug 25 20:15:57 2020       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 450.57       Driver Version: 450.57       CUDA Version: 11.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  GeForce RTX 2060    Off  | 00000000:01:00.0 Off |                  N/A |
+|  0%   46C    P8     9W / 170W |     83MiB /  5931MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|    0   N/A  N/A      2350      G   /usr/lib/xorg/Xorg                 21MiB |
+|    0   N/A  N/A      2648      G   /usr/bin/gnome-shell               59MiB |
++-----------------------------------------------------------------------------+
+
+```
+
+Using this: https://medium.com/@sh.tsang/tutorial-cuda-v10-2-cudnn-v7-6-5-installation-ubuntu-18-04-3d24c157473f to install cuda 
+This for cudnn https://developer.nvidia.com/rdp/cudnn-archive (Download cuDNN v7.6.5 (November 18th, 2019), for CUDA 10.2)
+Plus insalling pytorch like this in new conda env:
+
+```
+conda install pytorch torchvision -c pytorch
+```
+
+# 28.08.2020
+
+https://medium.com/@unnatsingh/deep-q-network-with-pytorch-d1ca6f40bfda
+
+# 31.08.2020
+
+So it seems that what i have to do is:
+- refactor the environment and make it compatible with openai
+- make some kind of trainer object to choose different options for training 
+
+Here is nice guide on how to do RL in PL.
+https://towardsdatascience.com/en-lightning-reinforcement-learning-a155c217c3de
+
+# 03.08.2020
+important note, I mixed up learning modes, I need to change how this is actually calculated
+
